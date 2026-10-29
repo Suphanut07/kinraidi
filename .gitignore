@@ -1,0 +1,8 @@
+# รูปต้นฉบับที่ยังไม่ได้ย่อ (Claude จะแปลงแล้วย้ายไป assets/img ให้)
+รูปร้าน/
+_photos-raw/
+
+# ไฟล์ระบบ
+.DS_Store
+Thumbs.db
+.vscode/

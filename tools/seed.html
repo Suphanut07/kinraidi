@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seed ข้อมูลเดโม — กินรัยดี</title>
+<style>body{font-family:sans-serif;max-width:640px;margin:40px auto;padding:0 16px;color:#5a3a26}button{background:#7F4D2F;color:#fff;border:0;border-radius:999px;padding:12px 24px;font-size:16px;cursor:pointer}pre{background:#FFF8E9;padding:12px;border-radius:12px;white-space:pre-wrap}</style>
+</head>
+<body>
+<h1>สร้างบัญชีเดโมใน Supabase</h1>
+<p>สร้างผู้ใช้ 8 คน (รหัส <b>123456</b>) + ให้ <b>poy@demo.com</b> เป็นเพื่อนกับทุกคน + กลุ่มตัวอย่าง 3 กลุ่ม<br>
+ต้องใส่ค่าใน <code>js/config.js</code> และปิด "Confirm email" ก่อน · กดซ้ำได้ (บัญชีที่มีแล้วจะข้าม)</p>
+<button id="go">เริ่ม Seed</button>
+<pre id="log"></pre>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../js/config.js"></script>
+<script>
+const log = (m) => (document.getElementById('log').textContent += m + '\n');
+const C = window.KRD_CONFIG;
+const USERS = [
+  ['poy@demo.com', 'ปอยจังชอบกินแซลม่อน', 'ISFJ', { food: ['japanese', 'dessert'], with: ['solo', 'friends'], budget: [2], vibe: ['aircon', 'quiet'] }, 'วันไหนมีแซลมอน วันนั้นคือวันที่ดี 🍣✨'],
+  ['money@demo.com', 'มันนี่', 'INFJ', { food: ['cafe', 'dessert'], with: ['friends'], budget: [2], vibe: ['quiet'] }],
+  ['tan@demo.com', 'แทนแทน', 'ENTJ', { food: ['thai', 'japanese'], with: ['friends'], budget: [2, 3], vibe: ['aircon'] }],
+  ['kao@demo.com', 'เก้า', 'ISFP', { food: ['cafe'], with: ['couple'], budget: [1, 2], vibe: ['outdoor', 'pet'] }],
+  ['regency@demo.com', 'รีเจนซี่', 'ESFJ', { food: ['thai'], with: ['family'], budget: [2], vibe: ['aircon'] }],
+  ['gam@demo.com', 'แก้ม', 'ESFP', { food: ['dessert', 'thai'], with: ['friends'], budget: [1, 2], vibe: ['outdoor'] }],
+  ['tako@demo.com', 'ตะโก้', 'ENFJ', { food: ['japanese'], with: ['friends'], budget: [2], vibe: ['aircon'] }],
+  ['prib@demo.com', 'พริบ', 'ENTJ', { food: ['thai'], with: ['friends'], budget: [1], vibe: [] }],
+];
+const client = () => supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false, storageKey: 'seed-' + Math.random() } });
+
+document.getElementById('go').onclick = async () => {
+  if (!C.SUPABASE_URL) return log('❌ ยังไม่ได้ใส่ค่าใน js/config.js');
+  const ids = {};
+  for (const [email, name, mbti, prefs, bio = ''] of USERS) {
+    const sb = client();
+    let { data, error } = await sb.auth.signUp({ email, password: '123456' });
+    if (error && /registered/i.test(error.message)) ({ data, error } = await sb.auth.signInWithPassword({ email, password: '123456' }));
+    if (error) { log(`❌ ${email}: ${error.message}`); continue; }
+    if (!data.session) { log(`❌ ${email}: ต้องปิด Confirm email ก่อน`); return; }
+    ids[email] = data.user.id;
+    const r = await sb.from('profiles').update({ display_name: name, mbti, prefs, bio }).eq('id', data.user.id);
+    log(r.error ? `⚠️ ${email}: ${r.error.message}` : `✓ ${name} (${email})`);
+  }
+  const sb = client();
+  await sb.auth.signInWithPassword({ email: 'poy@demo.com', password: '123456' });
+  for (const e of Object.keys(ids)) if (e !== 'poy@demo.com') await sb.rpc('add_friend', { target: ids[e] });
+  log('✓ เพิ่มเพื่อนให้ poy ครบแล้ว');
+  const { data: existing } = await sb.from('groups').select('name');
+  const G = [['อ้ายมา 4 คน', ['tan', 'kao', 'prib']], ['แก๊งสาวสวย', ['money', 'gam', 'regency']], ['ตี้หมูกะทะ', ['tan', 'gam', 'tako', 'money']]];
+  for (const [name, mem] of G) {
+    if ((existing || []).some((g) => g.name === name)) { log(`- ข้ามกลุ่ม ${name} (มีแล้ว)`); continue; }
+    const { data: g, error } = await sb.from('groups').insert({ name, created_by: ids['poy@demo.com'] }).select().single();
+    if (error) { log('❌ ' + error.message); continue; }
+    const rows = ['poy', ...mem].map((m) => ({ group_id: g.id, user_id: ids[m + '@demo.com'] }));
+    const r = await sb.from('group_members').insert(rows);
+    log(r.error ? '❌ ' + r.error.message : `✓ กลุ่ม ${name}`);
+  }
+  log('\n🎉 เสร็จแล้ว! ล็อกอินด้วย poy@demo.com / 123456');
+};
+</script>
+</body>
+</html>

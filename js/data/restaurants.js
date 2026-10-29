@@ -1,0 +1,305 @@
+/* =========================================================
+   ข้อมูลร้านอาหาร (ทีมเป็นคนดูแล — ผู้ใช้เพิ่มเองไม่ได้)
+   ---------------------------------------------------------
+   ⚠️ ฉบับร่าง: ชื่อร้านมาจาก Figma ของทีม + รีวิวออนไลน์
+      เวลาเปิด-ปิด / พิกัด / ราคา / ฟีเจอร์ ต้องให้ทีมเช็กหน้าร้านจริงอีกครั้ง
+      (ช่อง verified: false = ยังไม่ได้ตรวจ)
+
+   รูปภาพ: วางไฟล์ไว้ที่ assets/img/<id>-1.jpg, <id>-2.jpg (บรรยากาศ), <id>-3.jpg (เมนู)
+           ถ้าไม่มีไฟล์ เว็บจะแสดงภาพสีพร้อมอีโมจิแทนอัตโนมัติ
+
+   ความหมายของช่อง
+   cats   : ประเภท  thai | japanese | korean | western | dessert | cafe | isan | streetfood |
+                    shabu | madetoorder | noodle | brunch | bakery | seafood
+   price  : 1 = ต่ำกว่า 100 | 2 = 100-300 | 3 = 301-500 | 4 = 500 ขึ้นไป (ต่อคน)
+   feat   : aircon ติดแอร์ | quiet เงียบสงบ | outdoor กลางแจ้ง | pet สัตว์เลี้ยงเข้าได้ |
+            parking มีที่จอดรถ | wifi | halal ฮาลาล
+   open/close : "HH:MM"   closed : วันหยุด (0=อาทิตย์ ... 6=เสาร์)
+   vibe (ค่า -2 ถึง 2) จับคู่กับ 4 มิติ MBTI
+     e : -2 เงียบ/ชิล (สาย I)        ↔ +2 คึกคัก/คุยเสียงดังได้ (สาย E)
+     n : -2 คุ้นเคย/เมนูมาตรฐาน (S)  ↔ +2 แปลกใหม่/มีลูกเล่น (N)
+     f : -2 คุ้มค่า เร็ว ตรงๆ (T)     ↔ +2 บรรยากาศดี ถ่ายรูปสวย (F)
+     p : -2 วางแผนได้ จองได้ (J)      ↔ +2 จรๆ สบายๆ (P)
+   goodFor : solo | friends | couple | family
+   ========================================================= */
+window.RESTAURANTS = [
+  {
+    id: 'sainom', name: 'ใส่นม', nameEn: 'SAINOM', emoji: '🍨',
+    cats: ['dessert', 'cafe'], price: 2,
+    feat: ['aircon', 'quiet', 'wifi', 'pet', 'parking'],
+    open: '11:00', close: '21:00', closed: [],
+    lat: 13.8183, lng: 100.0436,
+    vibe: { e: 0, n: 1, f: 2, p: 1 },
+    goodFor: ['friends', 'couple', 'family'],
+    short: 'คาเฟ่ของหวานสายนม ไอศกรีมเข้มข้น ปังเย็นกรอบนอกนุ่มใน ราคานักศึกษา',
+    desc: 'ร้านของหวานที่มีเมนูให้เลือกหลากหลาย 🍧 ไอศกรีมเข้มข้น ขนมปังกรอบนอกนุ่มใน พนักงานยิ้มแย้มเป็นกันเอง ร้านกว้าง นั่งเป็นกลุ่มได้สบาย กินของคาวเสร็จแล้วแวะมาต่อของหวานได้เลย',
+    verified: false,
+  },
+  {
+    id: 'kruatoke', name: 'ครัวโทเก้', nameEn: 'KRUA TOKE', emoji: '🦆',
+    cats: ['thai', 'madetoorder'], price: 2,
+    feat: ['aircon', 'parking'],
+    open: '10:00', close: '20:00', closed: [],
+    lat: 13.8221, lng: 100.0452,
+    vibe: { e: 1, n: -1, f: 0, p: 0 },
+    goodFor: ['friends', 'family'],
+    short: 'อาหารไทยรสจัดจ้าน เมนูเด็ดเป็ดพะโล้ และกะเพราเป็ด ราคาดีงาม',
+    desc: 'ร้านอาหารไทยรสชาติดีสมคำร่ำลือ ราคาเป็นมิตร เมนูแนะนำคือ "เป็ดพะโล้" แต่ที่เด็ดกว่าคือ "กะเพราเป็ด" เหมาะกับมื้อกลางวันที่อยากกินอิ่มแบบไม่คิดเยอะ',
+    verified: false,
+  },
+  {
+    id: 'kruakhunmiang', name: 'ครัวคุณเมี่ยง', nameEn: 'KRUA KHUN MIANG', emoji: '🍤',
+    cats: ['thai', 'seafood'], price: 3,
+    feat: ['aircon', 'parking', 'quiet'],
+    open: '10:30', close: '21:00', closed: [],
+    lat: 13.8150, lng: 100.0380,
+    vibe: { e: 0, n: 1, f: 2, p: -1 },
+    goodFor: ['family', 'couple', 'friends'],
+    short: 'อาหารเหนือต้นตำรับผสมซีฟู้ดสด ร้านตกแต่งด้วยไม้และงานศิลป์',
+    desc: 'เสิร์ฟอาหารเหนือต้นตำรับจากพ่อครัวสะเมิง ผสมผสานกับซีฟู้ดสดใหม่ ร้านตกแต่งด้วยงานไม้และศิลปะเก่าแก่ บรรยากาศอบอุ่น เหมาะกับมื้อพิเศษกับครอบครัว',
+    verified: false,
+  },
+  {
+    id: 'yoisoup', name: 'Yoi Soup', nameEn: 'YOI SOUP', emoji: '🍲',
+    cats: ['noodle', 'shabu'], price: 2,
+    feat: ['aircon', 'wifi'],
+    open: '11:00', close: '22:00', closed: [],
+    lat: 13.8207, lng: 100.0398,
+    vibe: { e: 1, n: 1, f: 1, p: 2 },
+    goodFor: ['solo', 'friends', 'couple'],
+    short: 'หม่าล่าตักเองและซุปร้อนๆ เลือกวัตถุดิบได้ตามใจ',
+    desc: 'โยอิซุป ให้คุณมากกว่าหม่าล่าตัก แต่เป็นความรักในทุกชาม ❤️ เลือกวัตถุดิบเอง เลือกระดับเผ็ดได้ เหมาะกับวันที่อยากซดน้ำซุปร้อนๆ',
+    verified: false,
+  },
+  {
+    id: 'tama', name: 'TAMA', nameEn: 'JAPANESE RESTAURANT', emoji: '🍣',
+    cats: ['japanese'], price: 3,
+    feat: ['aircon', 'quiet', 'wifi', 'pet'],
+    open: '11:00', close: '21:00', closed: [],
+    lat: 13.8172, lng: 100.0415,
+    vibe: { e: -1, n: 0, f: 1, p: -1 },
+    goodFor: ['solo', 'couple', 'friends'],
+    short: 'ร้านอาหารญี่ปุ่นยอดนิยม ซูชิ ซาชิมิ ดงบุริ ขวัญใจนักศึกษา',
+    desc: 'ร้านอาหารญี่ปุ่นยอดนิยมและเป็นร้านขวัญใจนักศึกษา เมนูซูชิ ซาชิมิแซลมอน และดงบุริ ร้านสะอาด เงียบสบาย นั่งคุยกันเบาๆ ได้',
+    verified: false,
+  },
+  {
+    id: 'bakeTillWeDie', name: 'BAKE TILL WE DIE', nameEn: 'BAKERY CAFE', emoji: '🥐',
+    cats: ['cafe', 'bakery', 'dessert'], price: 2,
+    feat: ['aircon', 'quiet', 'wifi'],
+    open: '09:00', close: '18:00', closed: [3],
+    lat: 13.8235, lng: 100.0420,
+    vibe: { e: -2, n: 1, f: 2, p: 0 },
+    goodFor: ['solo', 'couple', 'friends'],
+    short: 'คาเฟ่เบเกอรีบรรยากาศอบอุ่น ขนมอบและเครื่องดื่มหลากหลาย',
+    desc: 'คาเฟ่เบเกอรีบรรยากาศอบอุ่น เสิร์ฟขนมอบและเครื่องดื่มหลากหลาย เหมาะสำหรับแวะพักผ่อน นั่งทำงาน หรือเติมความหวานระหว่างวัน',
+    verified: false,
+  },
+  {
+    id: 'yumwa', name: 'ยำว่ะ', nameEn: 'YUM WA', emoji: '🌶️',
+    cats: ['isan', 'thai', 'streetfood'], price: 2,
+    feat: ['outdoor', 'parking'],
+    open: '16:00', close: '23:00', closed: [],
+    lat: 13.8198, lng: 100.0465,
+    vibe: { e: 2, n: 0, f: -1, p: 2 },
+    goodFor: ['friends'],
+    short: 'ยำและอาหารอีสานรสจัด ยำแซลมอน สามชั้นทอด นั่งกับแก๊งได้ยาวๆ',
+    desc: 'ร้านยำและอาหารอีสานใกล้มหาวิทยาลัยศิลปากร ยำรสจัดจ้าน วัตถุดิบสดใหม่ เมนูยอดนิยมคือยำแซลมอนและสามชั้นทอด เหมาะสำหรับนัดกินกับเพื่อนๆ',
+    verified: false,
+  },
+  {
+    id: 'brunchOverBreakfast', name: 'BRUNCH OVER BREAKFAST', nameEn: 'BRUNCH CAFE', emoji: '🍳',
+    cats: ['brunch', 'cafe', 'western'], price: 3,
+    feat: ['aircon', 'quiet', 'wifi', 'parking'],
+    open: '10:30', close: '19:00', closed: [],
+    lat: 13.8160, lng: 100.0450,
+    vibe: { e: -1, n: 1, f: 2, p: 1 },
+    goodFor: ['couple', 'friends', 'solo'],
+    short: 'ร้านบรันช์สบายๆ อาหารจานหลักหลากหลาย อิ่มกว่ากาแฟกับขนม',
+    desc: 'ร้านบรันช์บรรยากาศสบายๆ มีอาหารจานหลักให้เลือกหลากหลาย เหมาะสำหรับมื้อสายที่อยากกินอิ่มมากกว่าแค่กาแฟและขนม',
+    verified: false,
+  },
+  {
+    id: 'hongyok', name: 'ข้าวหมูแดงหงษ์หยก', nameEn: 'HONGYOK', emoji: '🍖',
+    cats: ['thai', 'streetfood'], price: 1,
+    feat: ['outdoor'],
+    open: '07:00', close: '15:00', closed: [2, 3],
+    lat: 13.8195, lng: 100.0590,
+    vibe: { e: 1, n: -2, f: -1, p: 1 },
+    goodFor: ['solo', 'friends', 'family'],
+    short: 'ข้าวหมูแดงเก่าแก่เกินร้อยปีริมคลอง คิวยาวแต่คุ้มรอ',
+    desc: 'ร้านข้าวหมูแดงในตำนานของนครปฐม เปิดมานานกว่าร้อยปี บรรยากาศริมคลอง คนเยอะ คิวยาวในช่วงพีค แนะนำให้ไปเช้า (หยุดวันอังคาร-พุธ)',
+    verified: false,
+  },
+  {
+    id: 'dondon', name: 'ดงดง', nameEn: 'DON DON', emoji: '🍛',
+    cats: ['japanese'], price: 2,
+    feat: ['aircon', 'quiet'],
+    open: '11:00', close: '20:00', closed: [],
+    lat: 13.8212, lng: 100.0433,
+    vibe: { e: -1, n: 0, f: 1, p: 0 },
+    goodFor: ['solo', 'friends', 'couple'],
+    short: 'แกงกะหรี่ญี่ปุ่นราคาย่อมเยา ร้านมินิมอลน่านั่ง',
+    desc: 'ร้านข้าวแกงกะหรี่และอาหารญี่ปุ่นสไตล์โฮมเมด ราคาเป็นมิตรกับนักศึกษา ร้านตกแต่งมินิมอลน่านั่ง ช่วงเที่ยงคนค่อนข้างเยอะ',
+    verified: false,
+  },
+  {
+    id: 'hin', name: 'ร้านฮิ้น', nameEn: 'HIN DUCK RICE', emoji: '🍗',
+    cats: ['thai', 'madetoorder'], price: 1,
+    feat: ['parking'],
+    open: '08:00', close: '16:00', closed: [],
+    lat: 13.8186, lng: 100.0402,
+    vibe: { e: 0, n: -2, f: -2, p: 1 },
+    goodFor: ['solo', 'friends'],
+    short: 'ข้าวหน้าเป็ด ข้าวหมูกรอบ ติดมหาลัย สะอาด เสิร์ฟไว',
+    desc: 'ร้านข้าวหน้าเป็ดและข้าวหมูกรอบติดมหาวิทยาลัยศิลปากร ร้านสะอาด ได้อาหารเร็ว เหมาะกับมื้อด่วนระหว่างคาบ',
+    verified: false,
+  },
+  {
+    id: 'somtamjenong', name: 'ส้มตำเจ้นง หลังเวล', nameEn: 'SOMTAM JE NONG', emoji: '🥗',
+    cats: ['isan', 'streetfood'], price: 1,
+    feat: ['outdoor'],
+    open: '11:00', close: '21:00', closed: [],
+    lat: 13.8228, lng: 100.0395,
+    vibe: { e: 2, n: -1, f: -2, p: 2 },
+    goodFor: ['friends', 'solo'],
+    short: 'ส้มตำรสแซ่บ ราคาย่อมเยา บรรยากาศคึกคักแบบสายเฮฮา',
+    desc: 'ร้านส้มตำหลังมหาวิทยาลัย รสแซ่บถึงใจ ราคาย่อมเยา บรรยากาศคึกคัก นั่งกินกับเพื่อนคุยกันได้เต็มที่',
+    verified: false,
+  },
+  {
+    id: 'naichua', name: 'ข้าวหมูแดงนายฉั้ว', nameEn: 'NAI CHUA', emoji: '🍚',
+    cats: ['thai', 'streetfood'], price: 1,
+    feat: [],
+    open: '07:00', close: '14:00', closed: [],
+    lat: 13.8180, lng: 100.0605,
+    vibe: { e: 1, n: -2, f: -2, p: 1 },
+    goodFor: ['solo', 'family'],
+    short: 'ข้าวหมูแดงร้านดังของนครปฐม คิวยาวแต่ได้ไว',
+    desc: 'ร้านข้าวหมูแดงชื่อดังของนครปฐม ขึ้นชื่อเรื่องคิวยาว แต่ระบบเร็ว ได้กินไว รสชาติแบบดั้งเดิม',
+    verified: false,
+  },
+  {
+    id: 'nueatombansing', name: 'เนื้อต้มบ้านสิงห์', nameEn: 'BAN SING', emoji: '🍜',
+    cats: ['noodle', 'thai'], price: 1,
+    feat: ['parking'],
+    open: '08:00', close: '17:00', closed: [],
+    lat: 13.8105, lng: 100.0350,
+    vibe: { e: 1, n: -1, f: -1, p: 1 },
+    goodFor: ['solo', 'friends', 'family'],
+    short: 'เนื้อต้ม หมูต้ม น้ำซุปเข้มข้น เหมาะกับวันที่อยากซดน้ำร้อนๆ',
+    desc: 'ร้านเนื้อต้มและหมูต้มที่ขึ้นชื่อเรื่องน้ำซุปเข้มข้น บรรยากาศคึกคักแบบร้านเก่าแก่ เหมาะกับวันที่อยากซดน้ำซุปร้อนๆ',
+    verified: false,
+  },
+  {
+    id: 'banngandin', name: 'บ้านงานดิน', nameEn: 'BAN NGAN DIN', emoji: '🏺',
+    cats: ['thai', 'cafe'], price: 2,
+    feat: ['outdoor', 'pet', 'parking'],
+    open: '10:00', close: '20:00', closed: [1],
+    lat: 13.8250, lng: 100.0375,
+    vibe: { e: 1, n: 2, f: 2, p: 1 },
+    goodFor: ['friends', 'couple', 'family'],
+    short: 'อาหารไทยคู่กับเวิร์กช็อปปั้นดิน มีดนตรี บรรยากาศอบอุ่นมีชีวิตชีวา',
+    desc: 'ร้านอาหารไทยที่ผสมงานศิลปะเข้ากับการกิน มีเวิร์กช็อปปั้นดินเผาและดนตรี บรรยากาศอบอุ่น สนุก เหมาะกับแก๊งสายอาร์ต',
+    verified: false,
+  },
+  {
+    id: 'hnt', name: 'H&T Homemade & Tasty', nameEn: 'H&T HOMEMADE', emoji: '🌿',
+    cats: ['thai', 'madetoorder', 'cafe'], price: 1,
+    feat: ['outdoor', 'quiet', 'pet'],
+    open: '09:00', close: '18:00', closed: [0],
+    lat: 13.8168, lng: 100.0388,
+    vibe: { e: -2, n: 1, f: 1, p: 1 },
+    goodFor: ['solo', 'couple'],
+    short: 'ร้านลับในซอย สวนร่มรื่นมีบ่อปลาคาร์ป ข้าวกะเพรา แกงกะหรี่ สมูทตี้',
+    desc: 'ร้านลับในซอยเล็ก ร่มรื่นเหมือนนั่งในสวน มีบ่อปลาคาร์ป เมนูโฮมเมด เช่น ข้าวกะเพราไก่ ข้าวแกงกะหรี่ และสมูทตี้ เงียบ สงบ เหมาะกับสาย I',
+    verified: false,
+  },
+  {
+    id: 'snowwhite', name: 'Snow White', nameEn: 'SNOW WHITE', emoji: '🍕',
+    cats: ['western'], price: 2,
+    feat: ['aircon', 'parking', 'wifi'],
+    open: '11:00', close: '21:00', closed: [],
+    lat: 13.8140, lng: 100.0470,
+    vibe: { e: 2, n: 0, f: 1, p: 0 },
+    goodFor: ['friends', 'family'],
+    short: 'พิซซ่า สเต๊ก พาสต้า จานใหญ่ ราคานักศึกษา มาเป็นแก๊งคุ้มสุด',
+    desc: 'ร้านอาหารฝรั่งราคานักศึกษา ทั้งพิซซ่า สเต๊ก และพาสต้า จานใหญ่ ปริมาณจุใจ เหมาะกับการมาเป็นกลุ่มใหญ่',
+    verified: false,
+  },
+  {
+    id: 'lemongramen', name: 'เลอมง ราเมง', nameEn: 'LEMONG RAMEN', emoji: '🍜',
+    cats: ['japanese', 'noodle'], price: 1,
+    feat: ['aircon', 'quiet'],
+    open: '11:00', close: '20:30', closed: [],
+    lat: 13.8216, lng: 100.0412,
+    vibe: { e: -1, n: 1, f: 0, p: 1 },
+    goodFor: ['solo', 'friends'],
+    short: 'ราเมงร้านใหม่ใกล้มหาลัย เริ่มต้นเพียง 59 บาท',
+    desc: 'ร้านราเมงเปิดใหม่ใกล้มหาวิทยาลัย ราคาเริ่มต้นเพียง 59 บาท น้ำซุปเข้มข้น นั่งกินคนเดียวได้สบาย',
+    verified: false,
+  },
+  {
+    id: 'banbento', name: 'บ้านเบนโต', nameEn: 'BAN BENTO', emoji: '🍱',
+    cats: ['korean', 'japanese'], price: 2,
+    feat: ['aircon', 'wifi'],
+    open: '10:30', close: '20:00', closed: [],
+    lat: 13.8202, lng: 100.0378,
+    vibe: { e: 1, n: 1, f: 1, p: 1 },
+    goodFor: ['friends', 'couple'],
+    short: 'อาหารเกาหลีและญี่ปุ่นราคาคุ้ม ร้านแต่งโปสเตอร์การ์ตูนน่ารัก',
+    desc: 'ร้านอาหารเกาหลีและญี่ปุ่นราคาคุ้มค่า ตกแต่งด้วยโปสเตอร์การ์ตูนและโคมไฟน่ารัก ถ่ายรูปเพลิน เหมาะกับแก๊งเพื่อน',
+    verified: false,
+  },
+  {
+    id: 'jenidbualoy', name: 'เจ้นิด บัวลอยไข่หวาน', nameEn: 'JE NID BUALOY', emoji: '🥥',
+    cats: ['dessert', 'thai', 'streetfood'], price: 1,
+    feat: ['outdoor'],
+    open: '15:00', close: '22:00', closed: [],
+    lat: 13.8188, lng: 100.0478,
+    vibe: { e: 0, n: -1, f: 0, p: 2 },
+    goodFor: ['solo', 'couple', 'family'],
+    short: 'บัวลอยไข่หวานน้ำกะทิหอมๆ ของหวานไทยแบบดั้งเดิม',
+    desc: 'ร้านขนมหวานไทยแบบดั้งเดิม บัวลอยไข่หวานในน้ำกะทิหอมมัน กินร้อนๆ ได้ทุกฤดู เหมาะกับปิดท้ายมื้อเย็น',
+    verified: false,
+  },
+];
+
+/* ป้ายชื่อภาษาไทยของแต่ละหมวด/ฟีเจอร์ */
+window.LABELS = {
+  cats: {
+    thai: 'อาหารไทย', japanese: 'อาหารญี่ปุ่น', korean: 'อาหารเกาหลี', western: 'อาหารฝรั่ง',
+    dessert: 'ของหวาน', cafe: 'คาเฟ่', isan: 'อาหารอีสาน', streetfood: 'สตรีทฟู้ด',
+    shabu: 'ชาบู/หม่าล่า', madetoorder: 'ตามสั่ง', noodle: 'ก๋วยเตี๋ยว/เส้น', brunch: 'บรันช์',
+    bakery: 'เบเกอรี', seafood: 'ซีฟู้ด',
+  },
+  feat: {
+    aircon: 'ห้องแอร์', quiet: 'เงียบสงบ', outdoor: 'กลางแจ้ง', pet: 'สัตว์เลี้ยงเข้าได้',
+    parking: 'มีที่จอดรถ', wifi: 'มี Wi-Fi', halal: 'ฮาลาล',
+  },
+  price: { 1: 'ต่ำกว่า 100 บาท', 2: '100 - 300 บาท', 3: '301 - 500 บาท', 4: '500 บาทขึ้นไป' },
+  with: { solo: 'ทานคนเดียว', friends: 'เพื่อน', couple: 'คู่รัก', family: 'ครอบครัว' },
+};
+
+/* ตัวเลือก "สิ่งที่ฉันชอบ" ในหน้าโปรไฟล์ (ตาม Figma) */
+window.PREF_OPTIONS = {
+  food:   [['thai', 'อาหารไทย'], ['japanese', 'อาหารญี่ปุ่น'], ['dessert', 'ของหวาน'], ['cafe', 'คาเฟ่']],
+  with:   [['solo', 'ทานคนเดียว'], ['friends', 'เพื่อน'], ['couple', 'คู่รัก'], ['family', 'ครอบครัว']],
+  budget: [[1, 'ต่ำกว่า 100 บาท'], [2, '100 - 300 บาท'], [3, '301 - 500 บาท'], [4, '500 บาทขึ้นไป']],
+  vibe:   [['quiet', 'เงียบสงบ'], ['pet', 'สัตว์เลี้ยงเข้าได้'], ['outdoor', 'กลางแจ้ง'], ['aircon', 'ห้องแอร์']],
+};
+
+/* "เงื่อนไข" ในหน้าแรก (ตาม Figma) — type: feat = ต้องมีทุกข้อ, cat = มีข้อใดข้อหนึ่ง */
+window.CONDITIONS = [
+  { key: 'near', label: 'ใกล้ฉัน', type: 'special' },
+  { key: 'opennow', label: 'เปิดอยู่ตอนนี้', type: 'special' },
+  { key: 'madetoorder', label: 'ตามสั่ง', type: 'cat' },
+  { key: 'parking', label: 'มีที่จอดรถ', type: 'feat' },
+  { key: 'pet', label: 'สัตว์เลี้ยงเข้าได้', type: 'feat' },
+  { key: 'cafe', label: 'คาเฟ่', type: 'cat' },
+  { key: 'dessert', label: 'ของหวาน', type: 'cat' },
+  { key: 'halal', label: 'ฮาลาล', type: 'feat' },
+  { key: 'streetfood', label: 'สตรีทฟู้ด', type: 'cat' },
+  { key: 'aircon', label: 'ติดแอร์', type: 'feat' },
+  { key: 'shabu', label: 'ชาบู', type: 'cat' },
+];
