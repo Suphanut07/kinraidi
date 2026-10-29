@@ -301,17 +301,39 @@ window.PREF_OPTIONS = {
   vibe:   [['quiet', 'เงียบสงบ'], ['pet', 'สัตว์เลี้ยงเข้าได้'], ['outdoor', 'กลางแจ้ง'], ['aircon', 'ห้องแอร์']],
 };
 
-/* "เงื่อนไข" ในหน้าแรก (ตาม Figma) — type: feat = ต้องมีทุกข้อ, cat = มีข้อใดข้อหนึ่ง */
+/* "เงื่อนไข" ในหน้าแรก — เฉพาะสิ่งที่ขึ้นกับมื้อนี้และ "ต้องเป็นจริง" (ประเภทอาหาร/งบ/บรรยากาศ ดึงจากโปรไฟล์ทุกคนอยู่แล้ว)
+   type: feat = ร้านต้องมีฟีเจอร์นี้, special = มีโค้ดตรวจเฉพาะใน match.js */
 window.CONDITIONS = [
-  { key: 'near', label: 'ใกล้ฉัน', type: 'special' },
   { key: 'opennow', label: 'เปิดอยู่ตอนนี้', type: 'special' },
-  { key: 'madetoorder', label: 'ตามสั่ง', type: 'cat' },
-  { key: 'parking', label: 'มีที่จอดรถ', type: 'feat' },
-  { key: 'pet', label: 'สัตว์เลี้ยงเข้าได้', type: 'feat' },
-  { key: 'cafe', label: 'คาเฟ่', type: 'cat' },
-  { key: 'dessert', label: 'ของหวาน', type: 'cat' },
-  { key: 'halal', label: 'ฮาลาล', type: 'feat' },
-  { key: 'streetfood', label: 'สตรีทฟู้ด', type: 'cat' },
+  { key: 'near', label: 'ใกล้ฉัน', type: 'special' },
   { key: 'aircon', label: 'ติดแอร์', type: 'feat' },
-  { key: 'shabu', label: 'ชาบู', type: 'cat' },
+  { key: 'parking', label: 'มีที่จอดรถ', type: 'feat' },
+  { key: 'pet', label: 'พาน้องหมาไปด้วย', type: 'feat' },
+  { key: 'cheap', label: 'งบประหยัด', type: 'special' },   // ราคาไม่เกิน 100 บาท/คน
 ];
+
+/* แท็กของแต่ละร้าน — ใช้กับกล่อง "รายละเอียดเพิ่มเติม" (ระบบจับคำสำคัญใน match.js)
+   soup ซุป/น้ำร้อน · spicy เผ็ด · fried ของทอด · sweet ของหวาน · coffee กาแฟ/เครื่องดื่ม · rice ข้าว · noodle เส้น
+   meat เนื้อสัตว์ · seafood ทะเล · photo ร้านสวยถ่ายรูป · chill นั่งนานได้ · group เหมาะแก๊งใหญ่/เฮฮา · fast ได้ไว · healthy สุขภาพ */
+window.RESTAURANT_TAGS = {
+  sainom: ['sweet', 'photo', 'chill', 'group'],
+  kruatoke: ['rice', 'spicy', 'meat', 'fast'],
+  kruakhunmiang: ['seafood', 'spicy', 'photo', 'group', 'rice'],
+  yoisoup: ['soup', 'spicy', 'noodle'],
+  tama: ['rice', 'seafood', 'chill'],
+  bakeTillWeDie: ['sweet', 'coffee', 'photo', 'chill'],
+  yumwa: ['spicy', 'fried', 'group', 'seafood'],
+  brunchOverBreakfast: ['coffee', 'photo', 'chill', 'healthy'],
+  hongyok: ['rice', 'meat', 'fast'],
+  dondon: ['rice', 'fried', 'fast'],
+  hin: ['rice', 'meat', 'fried', 'fast'],
+  somtamjenong: ['spicy', 'group'],
+  naichua: ['rice', 'meat', 'fast'],
+  nueatombansing: ['soup', 'meat', 'noodle'],
+  banngandin: ['photo', 'group', 'chill', 'rice'],
+  hnt: ['chill', 'healthy', 'rice', 'coffee'],
+  snowwhite: ['fried', 'group', 'meat'],
+  lemongramen: ['soup', 'noodle'],
+  banbento: ['rice', 'fried', 'photo'],
+  jenidbualoy: ['sweet', 'soup'],
+};

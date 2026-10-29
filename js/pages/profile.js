@@ -21,14 +21,14 @@
     page.innerHTML = `
       <div class="container profile-wrap">
         <section class="profile-card">
-          <div class="avatar-wrap">${avatarHTML(me, 'lg')}
-            <button class="edit-dot" data-edit aria-label="แก้ไขรูปโปรไฟล์">${icon('pencil')}</button></div>
+          <div class="avatar-wrap">${avatarHTML(me, 'lg')}</div>
           <div>
             <h1>${esc(me.display_name)}</h1>
             <div class="who-line"><span class="email">${esc(me.email)}</span>${mbtiBadge(me.mbti)}</div>
             <p class="bio">${esc(me.bio) || '<span style="color:var(--muted)">ยังไม่มีคำอธิบาย</span>'}</p>
             <div class="who-line">
               <button class="btn btn-yellow dark-text btn-sm" data-edit>${icon('pencil')} แก้ไขโปรไฟล์</button>
+              <button class="btn btn-primary btn-sm" id="my-qr">${icon('qr')} QR ของฉัน</button>
               ${!me.mbti ? `<button class="btn btn-sm" id="quiz-cta">ยังไม่รู้ MBTI? ลองทำแบบทดสอบ</button>` : ''}
             </div>
           </div>
@@ -58,6 +58,7 @@
       </div>`;
 
     page.querySelectorAll('[data-edit]').forEach((b) => b.addEventListener('click', openEdit));
+    document.getElementById('my-qr').onclick = () => KRD.people.myQrPopup(me, { mode: 'friend' });
     const qc = document.getElementById('quiz-cta'); if (qc) qc.onclick = () => openQuiz(async (t) => { me = await KRD.api.updateMe({ mbti: t }); render(); toast(`บันทึก MBTI = ${t} แล้ว`); });
     page.querySelectorAll('[data-pref]').forEach((b) => b.addEventListener('click', () => togglePref(b)));
     document.getElementById('s-pw').onclick = openPassword;
@@ -105,11 +106,9 @@
           <div class="field"><label>ชื่อผู้ใช้</label>
             <input class="input" name="name" maxlength="40" value="${esc(me.display_name)}" ${canRename ? '' : 'disabled'}>
             <span class="hint">${canRename ? 'เปลี่ยนชื่อแล้วจะเปลี่ยนได้อีกครั้งในอีก 7 วัน' : `สามารถเปลี่ยนชื่อได้อีกครั้ง ในอีก ${daysLeft} วัน`}</span></div>
-          <hr class="form-sep">
           <div class="field"><label>อีเมล</label>
-            <div class="readonly-row"><input class="input" value="${esc(me.email)}" disabled></div></div>
-          <div class="field"><label>รหัสผ่าน</label>
-            <div class="readonly-row"><input class="input" value="********" disabled><button type="button" class="btn btn-sm btn-primary" id="to-pw">เปลี่ยน</button></div></div>
+            <div class="readonly-row"><input class="input" value="${esc(me.email)}" disabled></div>
+            <span class="hint">อีเมลใช้เข้าสู่ระบบ เปลี่ยนไม่ได้</span></div>
           <hr class="form-sep">
           <div class="field"><label>MBTI ของฉัน</label>
             <div class="mbti-row">
@@ -130,7 +129,6 @@
       onMount(el, close) {
         const f = el.querySelector('#ef');
         el.querySelector('[data-cancel]').onclick = close;
-        el.querySelector('#to-pw').onclick = () => { close(); openPassword(); };
         f.bio.addEventListener('input', () => (el.querySelector('#cnt').textContent = `${f.bio.value.length}/80`));
         el.querySelector('#quiz').onclick = () => openQuiz((t) => { f.mbti.value = t; });
         el.querySelector('#av-file').addEventListener('change', async (e) => {
@@ -209,14 +207,15 @@
       title: 'การตั้งค่าบัญชี', iconName: 'gear',
       body: `<form id="pf" novalidate>
           <div class="field"><label>${icon('key')} เปลี่ยนรหัสผ่าน</label></div>
-          <div class="field"><input class="input" type="password" name="old" placeholder="รหัสผ่านเดิม" autocomplete="current-password"></div>
-          <div class="field"><input class="input" type="password" name="pw" placeholder="รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)" autocomplete="new-password"></div>
-          <div class="field"><input class="input" type="password" name="cf" placeholder="ยืนยันรหัสผ่านใหม่" autocomplete="new-password"></div>
+          ${KRD.pwField('old', 'รหัสผ่านเดิม', 'current-password')}
+          ${KRD.pwField('pw', 'รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)', 'new-password')}
+          ${KRD.pwField('cf', 'ยืนยันรหัสผ่านใหม่', 'new-password')}
           <p class="error-text" id="p-err"></p>
           <div class="modal-actions"><button type="button" class="btn" data-cancel>ยกเลิก</button><button class="btn btn-primary" type="submit">บันทึก</button></div>
         </form>`,
       onMount(el, close) {
         const f = el.querySelector('#pf'), err = el.querySelector('#p-err');
+        KRD.bindPwToggles(el);
         el.querySelector('[data-cancel]').onclick = close;
         f.addEventListener('submit', async (e) => {
           e.preventDefault(); err.textContent = '';

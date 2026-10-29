@@ -123,6 +123,12 @@
     if (rr) rr.addEventListener('click', (e) => { e.preventDefault(); menu.classList.remove('open'); opts.onMobileReroll(); });
   }
 
+  // โลโก้โซเชียล (สัญลักษณ์ทางการ) — ตอนนี้เป็นของตกแต่ง ยังไม่ลิงก์ไปไหน
+  const SOCIAL_ICONS = `
+    <span class="soc soc-tiktok" title="TikTok"><svg viewBox="0 0 24 24"><path fill="#25F4EE" d="M11.4 1h3.5c.2 2.2 1.6 4 3.9 4.3v3.4c-1.4 0-2.7-.4-3.9-1.1v6.6c0 3.4-2.8 6.1-6.2 6.1S2.5 17.6 2.5 14.2s2.8-6.1 6.2-6.1c.3 0 .6 0 .9.1v3.5c-.3-.1-.6-.2-.9-.2-1.5 0-2.7 1.2-2.7 2.7s1.2 2.7 2.7 2.7 2.7-1.2 2.7-2.7V1z" transform="translate(-.7 .5)"/><path fill="#FE2C55" d="M11.4 1h3.5c.2 2.2 1.6 4 3.9 4.3v3.4c-1.4 0-2.7-.4-3.9-1.1v6.6c0 3.4-2.8 6.1-6.2 6.1S2.5 17.6 2.5 14.2s2.8-6.1 6.2-6.1c.3 0 .6 0 .9.1v3.5c-.3-.1-.6-.2-.9-.2-1.5 0-2.7 1.2-2.7 2.7s1.2 2.7 2.7 2.7 2.7-1.2 2.7-2.7V1z" transform="translate(.7 -.3)"/><path fill="#111" d="M11.4 1h3.5c.2 2.2 1.6 4 3.9 4.3v3.4c-1.4 0-2.7-.4-3.9-1.1v6.6c0 3.4-2.8 6.1-6.2 6.1S2.5 17.6 2.5 14.2s2.8-6.1 6.2-6.1c.3 0 .6 0 .9.1v3.5c-.3-.1-.6-.2-.9-.2-1.5 0-2.7 1.2-2.7 2.7s1.2 2.7 2.7 2.7 2.7-1.2 2.7-2.7V1z"/></svg></span>
+    <span class="soc soc-fb" title="Facebook"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path fill="#fff" d="M15.1 15.5l.5-3.5h-3.3V9.8c0-1 .5-1.9 2-1.9h1.5v-3s-1.4-.2-2.7-.2c-2.8 0-4.5 1.7-4.5 4.7V12H5.6v3.5h3v8.4a12 12 0 0 0 3.7 0v-8.4h2.8z"/></svg></span>
+    <span class="soc soc-ig" title="Instagram"><svg viewBox="0 0 24 24"><defs><radialGradient id="igg" cx="30%" cy="107%" r="150%"><stop offset="0" stop-color="#fdf497"/><stop offset=".05" stop-color="#fdf497"/><stop offset=".45" stop-color="#fd5949"/><stop offset=".6" stop-color="#d6249f"/><stop offset=".9" stop-color="#285AEB"/></radialGradient></defs><rect x="1" y="1" width="22" height="22" rx="6.5" fill="url(#igg)"/><rect x="5.5" y="5.5" width="13" height="13" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.4" cy="7.6" r="1" fill="#fff"/></svg></span>`;
+
   function renderFooter() {
     const el = document.getElementById('site-footer');
     if (!el) return;
@@ -134,12 +140,13 @@
             <nav class="footer-links">
               <a href="index.html">หน้าหลัก</a><a href="history.html">ประวัติ</a>
               <a href="profile.html">โปรไฟล์</a><a href="member.html">สมาชิก</a>
+              <a href="team.html">ผู้จัดทำ</a>
             </nav>
             <div class="footer-contact">
               <h4>ช่องทางการติดต่อ</h4>
               <p>อีเมล : kinraidixxx@gmail.com</p>
               <p>เบอร์โทรศัพท์ : 012-345-6789</p>
-              <div class="socials" aria-hidden="true"><span>♪</span><span>f</span><span>◎</span></div>
+              <div class="socials" aria-hidden="true">${SOCIAL_ICONS}</div>
             </div>
           </div>
           <p class="copyright">© Faculty of Information and Communication Technology, Silpakorn University. All Rights Reserved 2026</p>
@@ -319,6 +326,26 @@
     });
   }
 
+  /* ---------- ช่องรหัสผ่าน + ปุ่มเปิด/ปิดตา (ใช้ทุกที่ที่กรอกรหัสผ่าน) ---------- */
+  function pwField(name, placeholder, autocomplete = 'current-password') {
+    return `<div class="field"><div class="pw-wrap">
+        <input class="input" type="password" name="${name}" placeholder="${esc(placeholder)}" autocomplete="${autocomplete}">
+        <button type="button" class="toggle-pw" aria-label="แสดงรหัสผ่าน">${icon('eye')}</button>
+      </div></div>`;
+  }
+  function bindPwToggles(root = document) {
+    root.querySelectorAll('.toggle-pw').forEach((b) => {
+      if (b.dataset.bound) return; b.dataset.bound = 1;
+      b.addEventListener('click', () => {
+        const inp = b.parentElement.querySelector('input');
+        const show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        b.innerHTML = icon(show ? 'eyeOff' : 'eye');
+        b.setAttribute('aria-label', show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน');
+      });
+    });
+  }
+
   // เรียกตอนเริ่มทุกหน้า: วาด header/footer และคืนค่าผู้ใช้ปัจจุบัน
   async function boot(active, opts = {}) {
     let me = null;
@@ -329,7 +356,7 @@
   }
 
   window.KRD = Object.assign(window.KRD || {}, {
-    boot,
+    boot, pwField, bindPwToggles,
     icon, diceSVG, esc, logoHTML, renderHeader, renderFooter, toast, openModal, confirmModal,
     avatarHTML, mbtiBadge, rImg, imgFail, assetImg, featIcons, restaurantCard, bindFavButtons, diceRoll,
     qs, getRestaurant, mapsLink, mapsEmbed, hoursText, requireLogin, resizeImage,

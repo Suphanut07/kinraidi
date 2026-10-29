@@ -1,10 +1,13 @@
 /* =========================================================
    ส่วนแสดงรายละเอียดร้าน (ใช้ร่วมกันในหน้า result / restaurant)
+   topHTML    = การ์ดร้าน + แผนที่
+   bottomHTML = บรรยากาศ + เมนู + เครดิตภาพ
+   (หน้า result แทรกการ์ด "ทำไมถึงเป็นร้านนี้" ไว้ระหว่าง 2 ส่วนนี้)
    ========================================================= */
 (function () {
   const { icon, esc, rImg, featIcons, mapsLink, mapsEmbed, hoursText } = KRD;
 
-  function detailHTML(r, { fav = false } = {}) {
+  function topHTML(r, { fav = false } = {}) {
     return `
       <div class="detail-top">
         <article class="card detail-main">
@@ -34,7 +37,11 @@
           </div>
           <a class="btn btn-primary" href="${mapsLink(r)}" target="_blank" rel="noopener">${icon('pin')} ค้นหาเส้นทาง</a>
         </article>
-      </div>
+      </div>`;
+  }
+
+  function bottomHTML(r) {
+    return `
       <div class="detail-bottom">
         <article class="card photo-card">
           <div class="photo">${rImg(r, 2)}</div>
@@ -48,6 +55,8 @@
       <p class="photo-credit">ภาพประกอบ: ${esc(r.photoCredit || 'รวบรวมจากอินเทอร์เน็ตเพื่อการศึกษา ลิขสิทธิ์เป็นของร้านและเจ้าของภาพ')}</p>`;
   }
 
+  function detailHTML(r, opts = {}) { return topHTML(r, opts) + bottomHTML(r); }
+
   // เลื่อนดูรูปร้าน 1 → 2 → 3
   function bindGallery(root, r) {
     root.querySelectorAll('[data-gallery]').forEach((g) => {
@@ -60,5 +69,5 @@
     KRD.bindFavButtons(root);
   }
 
-  KRD.detail = { detailHTML, bindGallery };
+  KRD.detail = { detailHTML, topHTML, bottomHTML, bindGallery };
 })();

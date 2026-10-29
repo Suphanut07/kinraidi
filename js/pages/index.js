@@ -1,18 +1,22 @@
 /* =========================================================
-   หน้าหลัก: สุ่มร้าน / มื้อนี้ไปกับใคร / เงื่อนไข / ร้านแนะนำ
+   หน้าหลัก: สุ่มร้าน / มื้อนี้ไปกับใคร / เงื่อนไข / รายละเอียดเพิ่มเติม / ร้านแนะนำ
+   - วงกลมโปรไฟล์ว่าง → popup รายชื่อสมาชิก (เลือกเพื่อนเข้ามื้อ)
+   - ปุ่ม +          → popup "มาจอยกัน !" (สแกน QR / QR ของฉัน / รหัสเพื่อน)
+   - กดรูปคนในตี้     → ดูโปรไฟล์ + ปุ่มเอาออกจากมื้อนี้
    ========================================================= */
 (async function () {
   const { icon, esc, diceSVG, avatarHTML, mbtiBadge, restaurantCard, bindFavButtons, openModal, toast } = KRD;
   const me = await KRD.boot('home');
+  const NOTE_MAX = 100;
 
   /* ---------- state (เก็บใน sessionStorage ให้กลับมาหน้านี้แล้วยังอยู่) ---------- */
   const S = {
     get party() { try { return JSON.parse(sessionStorage.getItem('krd_party')) || []; } catch { return []; } },
     set party(v) { sessionStorage.setItem('krd_party', JSON.stringify(v)); },
-    get conds() { try { return JSON.parse(sessionStorage.getItem('krd_conds')) || []; } catch { return []; } },
+    get conds() { try { return (JSON.parse(sessionStorage.getItem('krd_conds')) || []).filter((k) => window.CONDITIONS.some((c) => c.key === k)); } catch { return []; } },
     set conds(v) { sessionStorage.setItem('krd_conds', JSON.stringify(v)); },
-    get search() { return sessionStorage.getItem('krd_search') || ''; },
-    set search(v) { sessionStorage.setItem('krd_search', v); },
+    get note() { return sessionStorage.getItem('krd_note') || ''; },
+    set note(v) { sessionStorage.setItem('krd_note', v); },
   };
   let friends = [], groups = [], favIds = [];
   if (me) {
@@ -53,10 +57,11 @@
           <div class="cond-grid" id="conds">
             ${window.CONDITIONS.map((c) => `<button class="chip" data-cond="${c.key}">${c.label}</button>`).join('')}
           </div>
-          <form class="search-box" id="search-form">
-            <input id="search" type="search" placeholder="ค้นหารายละเอียดเพิ่มเติม... เช่น ราเมง, ยำ" value="${esc(S.search)}">
-            ${icon('search')}
-          </form>
+          <div class="note-box">
+            <label for="note">${icon('pencil')} รายละเอียดเพิ่มเติม <span class="hint">(ไม่บังคับ)</span></label>
+            <textarea id="note" class="input" rows="3" maxlength="${NOTE_MAX}" placeholder="บอกความอยากของมื้อนี้ เช่น อยากซดน้ำร้อนๆ, ไม่เอาเผ็ด, อยากนั่งชิลถ่ายรูปสวย">${esc(S.note)}</textarea>
+            <span class="counter" id="note-cnt">${S.note.length}/${NOTE_MAX}</span>
+          </div>
         </div>
       </section>
 
@@ -72,18 +77,22 @@
   const condWrap = document.getElementById('conds');
   const paintConds = () => condWrap.querySelectorAll('[data-cond]').forEach((b) => b.classList.toggle('on', S.conds.includes(b.dataset.cond)));
   paintConds();
-  condWrap.addEventListener('click', async (e) => {
+  condWrap.addEventListener('click', (e) => {
     const b = e.target.closest('[data-cond]'); if (!b) return;
     const k = b.dataset.cond;
     const set = new Set(S.conds);
     set.has(k) ? set.delete(k) : set.add(k);
     S.conds = [...set];
     if (k === 'near' && set.has(k)) getLocation();
-    paintConds(); renderNearby();
+    paintConds();
   });
-  const searchInp = document.getElementById('search');
-  searchInp.addEventListener('input', () => { S.search = searchInp.value; renderNearby(); });
-  document.getElementById('search-form').addEventListener('submit', (e) => { e.preventDefault(); roll(); });
+
+  /* ---------- รายละเอียดเพิ่มเติม (เอาไปประมวลผลตอนสุ่ม) ---------- */
+  const noteInp = document.getElementById('note');
+  noteInp.addEventListener('input', () => {
+    S.note = noteInp.value.slice(0, NOTE_MAX);
+    document.getElementById('note-cnt').textContent = `${noteInp.value.length}/${NOTE_MAX}`;
+  });
 
   let userLoc = null;
   try { userLoc = JSON.parse(sessionStorage.getItem('krd_loc')); } catch {}
@@ -101,13 +110,9 @@
   /* ---------- ร้านแนะนำใกล้คุณ ---------- */
   function renderNearby() {
     const origin = userLoc || KRD_CONFIG.CAMPUS;
-    const q = (S.search || '').trim().toLowerCase();
-    let list = window.RESTAURANTS.slice()
-      .filter((r) => !q || [r.name, r.nameEn, r.short, ...r.cats.map((c) => window.LABELS.cats[c])].join(' ').toLowerCase().includes(q))
-      .sort((a, b) => KRD.match.distanceKm(origin, a) - KRD.match.distanceKm(origin, b));
+    const list = window.RESTAURANTS.slice().sort((a, b) => KRD.match.distanceKm(origin, a) - KRD.match.distanceKm(origin, b));
     const sc = document.getElementById('scroller');
-    sc.innerHTML = list.length ? list.map((r) => restaurantCard(r, { fav: favIds.includes(r.id) })).join('')
-      : '<div class="empty-state" style="grid-column:1/-1"><div class="big">🔍</div><h3>ไม่พบร้านที่ค้นหา</h3><p>ลองใช้คำอื่นดูนะ</p></div>';
+    sc.innerHTML = list.map((r) => restaurantCard(r, { fav: favIds.includes(r.id) })).join('');
     if (me) bindFavButtons(sc);
     else sc.querySelectorAll('[data-fav]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); location.href = 'login.html'; }));
   }
@@ -130,13 +135,12 @@
     const emptySlots = Math.max(1, 3 - Math.max(0, party.length - 4));
     partyArea.innerHTML = `
       <div class="party">
-        <span class="slot" title="${esc(me.display_name)} (คุณ)">${avatarHTML(me)}<span class="me-tag">ฉัน</span></span>
-        ${party.map((p) => `<span class="slot" title="${esc(p.display_name)} ${p.mbti || ''}">${avatarHTML(p)}
-            <button class="remove" data-remove="${p.id}" aria-label="เอา ${esc(p.display_name)} ออก">${icon('x')}</button></span>`).join('')}
-        ${Array.from({ length: emptySlots }, () => `<button class="slot" data-invite title="ชวนเพื่อนมาจอย (ล็อกอิน/สแกน QR)">${avatarHTML(null)}</button>`).join('')}
-        <button class="add-btn" id="add-friend" title="เลือกจากรายชื่อเพื่อน" aria-label="เพิ่มเพื่อน">${icon('plus')}</button>
+        <button class="slot" data-person="${me.id}" title="${esc(me.display_name)} (คุณ)">${avatarHTML(me)}<span class="me-tag">ฉัน</span></button>
+        ${party.map((p) => `<button class="slot" data-person="${p.id}" title="ดูโปรไฟล์ ${esc(p.display_name)}">${avatarHTML(p)}</button>`).join('')}
+        ${Array.from({ length: emptySlots }, () => `<button class="slot" data-pick title="เลือกจากรายชื่อสมาชิก">${avatarHTML(null)}</button>`).join('')}
+        <button class="add-btn" id="join-btn" title="มาจอยกัน ! (สแกน QR / รหัสเพื่อน)" aria-label="ชวนเพื่อนมาจอย">${icon('plus')}</button>
       </div>
-      <p class="party-name">${party.length ? `ไปกันทั้งหมด ${party.length + 1} คน` : 'ยังไม่ได้เลือกใคร = สุ่มสำหรับคุณคนเดียว'}</p>
+      <p class="party-name">${party.length ? `ไปกันทั้งหมด ${party.length + 1} คน · กดที่รูปเพื่อดูโปรไฟล์` : 'ยังไม่ได้เลือกใคร = สุ่มสำหรับคุณคนเดียว'}</p>
       <div class="group-select">
         <button id="group-btn" type="button">
           ${selectedGroup ? groupAvatar(selectedGroup) : avatarHTML(null)}
@@ -144,11 +148,10 @@
           <span class="caret">${icon('chevronDown')}</span>
         </button>
       </div>`;
-    partyArea.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('click', () => {
-      S.party = S.party.filter((p) => p.id !== b.dataset.remove); selectedGroup = null; renderParty();
-    }));
-    partyArea.querySelectorAll('[data-invite]').forEach((b) => b.addEventListener('click', openInvite));
-    document.getElementById('add-friend').addEventListener('click', openFriendPicker);
+    partyArea.querySelectorAll('[data-person]').forEach((b) => b.addEventListener('click', () => openPerson(b.dataset.person)));
+    partyArea.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', openFriendPicker));
+    document.getElementById('join-btn').addEventListener('click', () =>
+      KRD.people.joinPopup(me, { mode: 'meal', onAdded: (p) => { addToParty([p]); if (!friends.some((f) => f.id === p.id)) friends.push(p); } }));
     document.getElementById('group-btn').addEventListener('click', openGroupMenu);
   }
   function groupAvatar(g) {
@@ -160,6 +163,18 @@
     S.party = cur; renderParty();
   }
   renderParty();
+
+  // กดรูปในตี้ → ดูโปรไฟล์ (+ เอาออกจากมื้อนี้)
+  function openPerson(id) {
+    const p = id === me.id ? me : S.party.find((x) => x.id === id);
+    if (!p) return;
+    const actions = id === me.id ? [{ label: 'แก้ไขโปรไฟล์ของฉัน', icon: 'pencil', cls: 'btn-primary', onClick: () => (location.href = 'profile.html') }]
+      : [{ label: 'เอาออกจากมื้อนี้', icon: 'x', cls: 'btn-danger', onClick: (close) => {
+          S.party = S.party.filter((x) => x.id !== id); selectedGroup = null; renderParty(); close();
+          toast(`เอา ${p.display_name} ออกจากมื้อนี้แล้ว`);
+        } }];
+    KRD.people.personPopup(p, { actions });
+  }
 
   // dropdown เลือกกลุ่ม
   function openGroupMenu() {
@@ -184,84 +199,30 @@
     }));
   }
 
-  // เลือกเพื่อนจากรายชื่อ (ADD MEMBERS)
+  // popup รายชื่อสมาชิก (เลือกเพื่อนเข้ามื้อ)
   function openFriendPicker() {
+    const inParty = (id) => S.party.some((p) => p.id === id);
+    const btnHTML = (on) => `${icon(on ? 'check' : 'plusCircle')} <span>${on ? 'เพิ่มแล้ว' : 'เพิ่ม'}</span>`;
     openModal({
       title: 'รายชื่อสมาชิก', iconName: 'user',
       body: friends.length ? `<div class="pick-list">${friends.map((f) => `
-          <div class="pick-row">${avatarHTML(f)}<div class="who"><strong>${esc(f.display_name)}</strong>${mbtiBadge(f.mbti)}</div>
-          <button class="add ${S.party.some((p) => p.id === f.id) ? 'on' : ''}" data-pick="${f.id}">${icon(S.party.some((p) => p.id === f.id) ? 'check' : 'plusCircle')} <span>${S.party.some((p) => p.id === f.id) ? 'เพิ่มแล้ว' : 'เพิ่ม'}</span></button></div>`).join('')}</div>
-          <div class="modal-actions"><button class="btn btn-primary" data-done>เสร็จสิ้น</button></div>`
-        : `<div class="empty-state"><div class="big">👥</div><h3>ยังไม่มีเพื่อนเลย</h3><p>ไปเพิ่มเพื่อนที่หน้าสมาชิกก่อนนะ</p><br><a class="btn btn-primary" href="member.html">ไปหน้าสมาชิก</a></div>`,
+          <div class="pick-row"><button class="who-btn" data-view="${f.id}">${avatarHTML(f)}<span class="who"><strong>${esc(f.display_name)}</strong>${mbtiBadge(f.mbti)}</span></button>
+          <button class="add ${inParty(f.id) ? 'on' : ''}" data-pick="${f.id}">${btnHTML(inParty(f.id))}</button></div>`).join('')}</div>
+          <div class="modal-actions"><button class="btn" data-join>${icon('plus')} เพิ่มเพื่อนใหม่</button><button class="btn btn-primary" data-done>เสร็จสิ้น</button></div>`
+        : `<div class="empty-state"><div class="big">👥</div><h3>ยังไม่มีเพื่อนเลย</h3><p>กดปุ่มด้านล่างเพื่อเพิ่มเพื่อนด้วย QR หรือรหัสเพื่อน</p><br><button class="btn btn-primary" data-join>${icon('plus')} เพิ่มเพื่อน</button></div>`,
       onMount(el, close) {
         el.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => {
           const id = b.dataset.pick;
-          if (S.party.some((p) => p.id === id)) S.party = S.party.filter((p) => p.id !== id);
+          if (inParty(id)) S.party = S.party.filter((p) => p.id !== id);
           else addToParty([friends.find((f) => f.id === id)]);
-          const on = S.party.some((p) => p.id === id);
-          b.classList.toggle('on', on);
-          b.innerHTML = `${icon(on ? 'check' : 'plusCircle')} <span>${on ? 'เพิ่มแล้ว' : 'เพิ่ม'}</span>`;
+          b.classList.toggle('on', inParty(id));
+          b.innerHTML = btnHTML(inParty(id));
           selectedGroup = null; renderParty();
         }));
+        el.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => KRD.people.personPopup(friends.find((f) => f.id === b.dataset.view))));
         const d = el.querySelector('[data-done]'); if (d) d.onclick = close;
+        el.querySelectorAll('[data-join]').forEach((b) => (b.onclick = () => { close(); document.getElementById('join-btn').click(); }));
       },
-    });
-  }
-
-  // Popup "มาจอยกัน !" : เพื่อนล็อกอินบนเครื่องเรา หรือ สแกน QR จากมือถือตัวเอง
-  function openInvite() {
-    const since = new Date(Date.now() - 1000).toISOString();
-    let timer = null;
-    const joinUrl = new URL('join.html?host=' + encodeURIComponent(me.id), location.href).href;
-    openModal({
-      theme: 'brown', noHead: true, wide: true,
-      body: `
-        <div class="invite">
-          <form id="guest-form" novalidate>
-            <h4>มาจอยกัน !</h4>
-            <input class="input" type="email" name="email" placeholder="อีเมล" autocomplete="off">
-            <input class="input" type="password" name="password" placeholder="รหัสผ่าน" autocomplete="new-password">
-            <p class="error-text" id="g-err"></p>
-            <button class="btn btn-yellow btn-block" type="submit">เข้าสู่ระบบ</button>
-            <p class="qr-caption">เพื่อนล็อกอินบนเครื่องนี้ได้เลย<br>(ระบบจะไม่ทำให้บัญชีของคุณหลุด)</p>
-          </form>
-          <div>
-            <div class="qr-box"><div class="qr" id="qr"></div></div>
-            <p class="qr-caption">หรือให้เพื่อนสแกนด้วยมือถือตัวเอง<br>แล้วกด "เข้าร่วมมื้อนี้"</p>
-            <div class="joined-list" id="joined"></div>
-          </div>
-        </div>`,
-      onMount(el) {
-        try { new QRCode(el.querySelector('#qr'), { text: joinUrl, width: 180, height: 180, colorDark: '#7F4D2F', colorLight: '#ffffff' }); }
-        catch { el.querySelector('#qr').innerHTML = `<a href="${joinUrl}" style="color:#7F4D2F;font-size:12px;word-break:break-all">${esc(joinUrl)}</a>`; }
-        const f = el.querySelector('#guest-form'), err = el.querySelector('#g-err');
-        const joined = el.querySelector('#joined');
-        const showJoined = (p) => { joined.insertAdjacentHTML('beforeend', `<span class="pill">✓ ${esc(p.display_name)}</span>`); };
-        f.addEventListener('submit', async (e) => {
-          e.preventDefault(); err.textContent = '';
-          const btn = f.querySelector('button'); btn.disabled = true;
-          try {
-            const p = await KRD.api.verifyCredentials(f.email.value, f.password.value);
-            if (p.id === me.id) throw new Error('นี่คือบัญชีของคุณเองนะ 😆');
-            addToParty([p]); showJoined(p);
-            f.reset(); toast(`${p.display_name} เข้าร่วมมื้อนี้แล้ว 🎉`);
-          } catch (ex) { err.textContent = ex.message; }
-          btn.disabled = false;
-        });
-        // รอเพื่อนสแกน QR — เช็กทุก 3 วินาทีระหว่างที่ popup เปิดอยู่
-        const seen = new Set();
-        timer = setInterval(async () => {
-          try {
-            const list = await KRD.api.getMealJoins(me.id, since);
-            list.filter((p) => !seen.has(p.id)).forEach((p) => {
-              seen.add(p.id); addToParty([p]); showJoined(p);
-              toast(`${p.display_name} สแกนเข้าร่วมแล้ว 🎉`);
-              if (!friends.some((f) => f.id === p.id)) friends.push(p);
-            });
-          } catch {}
-        }, 3000);
-      },
-      onClose() { clearInterval(timer); },
     });
   }
 
@@ -271,10 +232,11 @@
     if (!me) { toast('เข้าสู่ระบบก่อนนะ แล้วค่อยสุ่มกัน'); setTimeout(() => (location.href = 'login.html'), 900); return; }
     const party = [me, ...S.party];
     const conds = S.conds;
-    const result = KRD.match.recommend(party, conds, { search: S.search.trim(), location: userLoc });
-    if (!result) { toast('ไม่พบร้านที่ตรงกับคำค้นหาเลย ลองเปลี่ยนคำดูนะ', 'error'); return; }
+    const note = S.note.trim();
+    const result = KRD.match.recommend(party, conds, { note, location: userLoc });
+    if (!result) { toast('ไม่พบร้านเลย ลองเปลี่ยนเงื่อนไขดูนะ', 'error'); return; }
     sessionStorage.setItem('krd_roll', JSON.stringify({
-      party: S.party, conds, search: S.search.trim(), location: userLoc, exclude: [],
+      party: S.party, conds, note, location: userLoc, exclude: [],
       current: { id: result.pick.id, percent: result.percent, reasons: result.reasons, relaxed: result.relaxed },
       groupName: selectedGroup ? selectedGroup.name : '',
     }));

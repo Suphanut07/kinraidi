@@ -349,3 +349,119 @@
 .join-card .avatar { margin: 0 auto 12px; width: 110px; height: 110px; border-width: 0; }
 .join-card p { margin: 6px 0; }
 .join-card .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+
+/* =========================================================
+   รอบแก้ไขตามบรีฟ (30 ต.ค.)
+   ========================================================= */
+
+/* ---- หน้าสุ่มเลย: ตี้ / เงื่อนไข / รายละเอียดเพิ่มเติม ---- */
+.party .slot { cursor: pointer; border-radius: 50%; }
+.party .slot:hover .avatar, .party .slot:focus-visible .avatar { box-shadow: 0 0 0 4px var(--yellow); }
+.note-box { margin-top: 18px; display: flex; flex-direction: column; gap: 6px; }
+.note-box label { font-family: var(--font-head); font-size: 16px; color: var(--brown); display: flex; align-items: center; gap: 8px; }
+.note-box label .icon { width: 18px; height: 18px; }
+.note-box textarea { background: var(--cream); border-color: var(--cream); border-radius: 18px; min-height: 92px; }
+.note-box textarea:focus { border-color: var(--brown); }
+.who-btn { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; background: none; border: none; padding: 0; text-align: left; color: var(--text); }
+
+/* ---- popup โปรไฟล์ ---- */
+.person-pop { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.person-pop .avatar.lg { width: 140px; height: 140px; }
+.person-pop h3 { font-size: 24px; margin-top: 8px; }
+.person-pop p { margin: 2px 0; }
+.person-pop .bio { color: var(--text); font-size: 15px; max-width: 360px; }
+.pp-title { font-family: var(--font-head); color: var(--brown); display: flex; gap: 8px; align-items: center; margin: 0 0 10px; }
+.pp-row { display: grid; grid-template-columns: 24px 96px 1fr; gap: 10px; align-items: start; margin-bottom: 10px; }
+.pp-row > .icon { width: 22px; height: 22px; color: var(--brown); margin-top: 6px; }
+.pp-label { font-family: var(--font-head); font-size: 14px; color: var(--brown); margin-top: 6px; }
+.pp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pp-chips .chip { font-size: 13px; min-height: 32px; padding: 4px 12px; }
+@media (max-width: 480px) { .pp-row { grid-template-columns: 22px 1fr; } .pp-chips { grid-column: 1 / -1; } }
+
+/* ---- popup มาจอยกัน / QR ของฉัน ---- */
+.join-pop, .qr-pop { color: #fff; text-align: center; }
+.join-pop h4, .qr-pop h4 { color: #fff; font-size: 26px; margin-bottom: 16px; }
+.scan-box { background: var(--cream); border-radius: 22px; padding: 12px; }
+.scan-box #qr-reader { border-radius: 14px; overflow: hidden; border: none !important; min-height: 220px; background: #2b1a10; }
+.scan-box .qr-caption { color: var(--brown); margin-top: 8px; }
+.join-or { display: flex; align-items: center; gap: 10px; color: var(--sand); font-size: 13px; margin: 14px 0; }
+.join-or::before, .join-or::after { content: ''; flex: 1; border-top: 1px solid rgba(255,255,255,.25); }
+.code-form { display: flex; gap: 8px; }
+.code-form .input { flex: 1; text-align: center; font-family: var(--font-head); font-size: 22px; letter-spacing: 6px; text-transform: uppercase; border-radius: 16px; }
+.code-form .input::placeholder { letter-spacing: 1px; font-size: 15px; }
+.code-form .btn { flex-shrink: 0; color: var(--brown); }
+.join-pop .btn-yellow { color: var(--brown); }
+.qr-name { color: #fff; font-size: 17px; margin: 14px 0 6px; }
+.qr-code { font-family: var(--font-head); font-size: 30px; letter-spacing: 6px; color: var(--yellow); margin: 0 0 6px; }
+.qr-pop .qr-box { display: inline-grid; }
+.joined-list { justify-content: center; }
+
+/* ---- หน้าผลลัพธ์ ---- */
+.result-head { display: block; padding: 32px 0 4px; }
+.result-head h1 { font-size: 44px; text-align: center; }
+.why-card { margin-top: 32px; padding: 24px; display: grid; grid-template-columns: 200px 1.3fr 1fr; gap: 0; }
+.why-col { padding: 4px 24px; }
+.why-col + .why-col { border-left: 2px dashed var(--line); }
+.why-col h3 { font-size: 20px; display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.why-col h3 .icon { width: 22px; height: 22px; }
+.why-match { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.why-match p { margin: 10px 0 0; font-family: var(--font-head); color: var(--brown); }
+.match-ring.big { width: 140px; height: 140px; }
+.match-ring.big > div { width: 112px; height: 112px; }
+.match-ring.big b { font-size: 36px; }
+.match-ring.big small { font-size: 13px; }
+.why-reasons ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.why-reasons li { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; }
+.why-reasons li .icon { color: var(--green); margin-top: 3px; }
+.why-note { margin: 14px 0 0; font-size: 14px; color: var(--muted); display: flex; gap: 6px; align-items: flex-start; }
+.why-note .icon { width: 16px; height: 16px; margin-top: 3px; }
+.gang-sum { margin: 0 0 12px; font-size: 15px; background: var(--white); border-radius: 12px; padding: 8px 12px; }
+.gang-sum b { color: var(--brown); }
+.gang-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.gang-person { display: flex; align-items: center; gap: 10px; background: var(--white); border: none; border-radius: 14px; padding: 6px 10px; text-align: left; color: var(--text); }
+.gang-person:hover { background: var(--cream-2); }
+.gang-person .avatar { width: 36px; height: 36px; border-width: 2px; }
+.gang-person .avatar .initial { font-size: 15px; }
+.gp-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+.detail-bottom { margin-top: 32px; }
+@media (max-width: 1023px) {
+  .why-card { grid-template-columns: 170px 1fr; }
+  .why-gang { grid-column: 1 / -1; border-left: none !important; border-top: 2px dashed var(--line); padding-top: 18px; margin-top: 14px; }
+}
+@media (max-width: 767px) {
+  .result-head h1 { font-size: 28px; }
+  .why-card { grid-template-columns: 1fr; padding: 18px; margin-top: 20px; }
+  .why-col { padding: 0; }
+  .why-col + .why-col { border-left: none; border-top: 2px dashed var(--line); padding-top: 16px; margin-top: 16px; }
+  .detail-bottom { margin-top: 20px; }
+}
+
+/* ปุ่มลูกเต๋าลอย (ลากได้) */
+.fab-dice {
+  position: fixed; z-index: 90; width: 96px; height: 96px; border-radius: 50%; border: none; padding: 6px;
+  background: conic-gradient(from 200deg, var(--pink), var(--yellow), var(--green), var(--blue), var(--pink));
+  box-shadow: 0 8px 24px rgba(127,77,47,.35); touch-action: none; user-select: none; cursor: grab;
+  animation: fab-bob 2.4s ease-in-out infinite;
+}
+.fab-dice .fab-inner { width: 100%; height: 100%; border-radius: 50%; background: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--brown); line-height: 1; gap: 2px; pointer-events: none; }
+.fab-dice svg { width: 44px; height: 44px; }
+.fab-dice:hover svg { animation: wobble .5s ease-in-out; }
+.fab-dice.dragging { cursor: grabbing; animation: none; transform: scale(1.08); box-shadow: 0 14px 32px rgba(127,77,47,.4); }
+@keyframes fab-bob { 50% { transform: translateY(-6px); } }
+.fab-tip { position: fixed; z-index: 91; width: 240px; background: var(--brown); color: #fff; font-size: 13px; text-align: center; padding: 8px 12px; border-radius: 12px; box-shadow: var(--shadow); animation: pop .2s ease-out; pointer-events: none; }
+@media (max-width: 767px) { .fab-dice { width: 82px; height: 82px; } .fab-dice svg { width: 36px; height: 36px; } }
+
+/* ---- หน้าสมาชิก: หัวข้อพับ/กางได้ ---- */
+.bar-toggle { width: 100%; border: none; cursor: pointer; text-align: left; }
+.bar-toggle:hover { filter: brightness(1.06); }
+.bar-count { font-size: .7em; opacity: .8; font-weight: 500; }
+.fold-caret { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.15); display: grid; place-items: center; transition: transform .2s; transform: rotate(-90deg); }
+.fold-caret.open { transform: rotate(0deg); }
+.fold-caret .icon { width: 24px; height: 24px; }
+
+/* ---- หน้าผู้จัดทำ ---- */
+.team-list { display: flex; flex-direction: column; gap: 28px; }
+.team-card .avatar.lg { width: 170px; height: 170px; }
+.team-card .avatar .logo-fallback { background: none; font-size: 64px; color: var(--brown); }
+.team-card h1 { font-size: 34px; }
+.team-meta { margin: 4px 0; color: var(--muted); font-size: 14px; }

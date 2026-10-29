@@ -60,28 +60,99 @@
   }
 
   function passes(r, conds, ctx) {
-    const cats = conds.filter((k) => (window.CONDITIONS.find((c) => c.key === k) || {}).type === 'cat');
     const feats = conds.filter((k) => (window.CONDITIONS.find((c) => c.key === k) || {}).type === 'feat');
-    if (cats.length && !r.cats.some((c) => cats.includes(c))) return false;
     if (feats.some((f) => !r.feat.includes(f))) return false;
     if (conds.includes('opennow') && !isOpenNow(r)) return false;
     if (conds.includes('near') && distanceKm(ctx.location || cfg.CAMPUS, r) > (cfg.NEAR_KM || 3)) return false;
-    if (ctx.search) {
-      const q = ctx.search.toLowerCase();
-      const hay = [r.name, r.nameEn, r.short, r.desc, ...r.cats.map((c) => window.LABELS.cats[c])].join(' ').toLowerCase();
-      if (!q.split(/\s+/).every((w) => hay.includes(w))) return false;
-    }
+    if (conds.includes('cheap') && r.price > 1) return false;
     return true;
+  }
+
+  /* =========================================================
+     กล่อง "รายละเอียดเพิ่มเติม" — ระบบจับคำสำคัญภาษาไทย
+     - เจอคำ → เพิ่มคะแนนร้านที่ตรง (ไม่ได้คัดร้านทิ้ง จึงยังสุ่มได้เสมอ)
+     - มีคำปฏิเสธนำหน้า (ไม่เอา / ไม่กิน / ไม่อยาก / งด ...) → ลดคะแนนร้านที่ตรงแทน
+     key ที่ใช้: แท็กใน RESTAURANT_TAGS, ประเภทอาหาร (cats), หรือฟีเจอร์ร้าน (feat)
+     อยากเพิ่มคำ → เพิ่มแถวใน KEYWORDS ได้เลย
+     ========================================================= */
+  const KEYWORDS = [
+    { re: /ซด|น้ำซุป|ซุป|ร้อนๆ|ร้อน ๆ|ต้ม|หม่าล่า|ชาบู|สุกี้/, keys: ['soup'], label: 'ซุปร้อนๆ' },
+    { re: /ก๋วยเตี๋ยว|เส้น|บะหมี่|ราเมง|ราเมน|พาสต้า/, keys: ['noodle'], label: 'เมนูเส้น' },
+    { re: /เผ็ด|แซ่บ|แซบ|ยำ|ส้มตำ|ตำ|ลาบ/, keys: ['spicy'], label: 'รสจัดจ้าน' },
+    { re: /ทอด|กรอบ|คาราเกะ|ทงคัตสึ/, keys: ['fried'], label: 'ของทอด' },
+    { re: /ของหวาน|หวาน|ไอติม|ไอศกรีม|เค้ก|ขนม|บิงซู|ปังเย็น|บัวลอย|เบเกอรี/, keys: ['sweet', 'dessert', 'bakery'], label: 'ของหวาน' },
+    { re: /กาแฟ|คาเฟ่|ชาไทย|ชานม|มัทฉะ|เครื่องดื่ม|สมูทตี้/, keys: ['coffee', 'cafe'], label: 'คาเฟ่/เครื่องดื่ม' },
+    { re: /ข้าว(?!โพด)|กับข้าว|จานเดียว/, keys: ['rice'], label: 'ข้าว' },
+    { re: /หมู|เนื้อ|ไก่|เป็ด|สเต๊ก/, keys: ['meat'], label: 'เนื้อสัตว์' },
+    { re: /ทะเล|ซีฟู้ด|กุ้ง|ปลา(?!ย)|แซลมอน|หมึก|ปูผัด|เนื้อปู/, keys: ['seafood'], label: 'อาหารทะเล' },
+    { re: /ญี่ปุ่น|ซูชิ|ซาชิมิ|ดงบุริ|แกงกะหรี่|ราเมง|ราเมน/, keys: ['japanese'], label: 'อาหารญี่ปุ่น' },
+    { re: /เกาหลี|ต็อกบกกี|กิมจิ/, keys: ['korean'], label: 'อาหารเกาหลี' },
+    { re: /ฝรั่ง|พิซซ่า|สเต๊ก|พาสต้า|เบอร์เกอร์/, keys: ['western'], label: 'อาหารฝรั่ง' },
+    { re: /อีสาน|ส้มตำ|ลาบ|น้ำตก/, keys: ['isan'], label: 'อาหารอีสาน' },
+    { re: /อาหารไทย|ตามสั่ง|กะเพรา|ผัดไทย/, keys: ['thai', 'madetoorder'], label: 'อาหารไทย' },
+    { re: /บรันช์|อาหารเช้า|มื้อสาย/, keys: ['brunch'], label: 'บรันช์' },
+    { re: /เงียบ|สงบ|คุยงาน|ทำงาน|อ่านหนังสือ|ทำการบ้าน/, keys: ['quiet'], label: 'บรรยากาศเงียบ' },
+    { re: /ถ่ายรูป|สวย|มินิมอล|น่ารัก|ลงสตอรี่|ไอจี/, keys: ['photo'], label: 'ร้านสวยถ่ายรูป' },
+    { re: /นั่งนาน|นั่งยาว|นั่งชิล|ชิล/, keys: ['chill'], label: 'นั่งชิลได้นาน' },
+    { re: /เฮฮา|ปาร์ตี้|สังสรรค์|เสียงดัง|แก๊งใหญ่|คนเยอะ/, keys: ['group'], label: 'เฮฮากับแก๊ง' },
+    { re: /รีบ|ด่วน|เร็ว|ไม่มีเวลา|คาบต่อไป/, keys: ['fast'], label: 'ได้อาหารไว' },
+    { re: /คลีน|สุขภาพ|ผัก|ไม่อ้วน|ไดเอท/, keys: ['healthy'], label: 'อาหารสุขภาพ' },
+    { re: /แอร์|เย็นๆ|ร้อนมาก|อากาศร้อน/, keys: ['aircon'], label: 'ห้องแอร์' },
+    { re: /กลางแจ้ง|ลมเย็น|ในสวน|ธรรมชาติ/, keys: ['outdoor'], label: 'นั่งกลางแจ้ง' },
+    { re: /หมา|แมว|สัตว์เลี้ยง/, keys: ['pet'], label: 'พาสัตว์เลี้ยงได้' },
+    { re: /ราคาถูก|ถูกๆ|ถูก ๆ|ประหยัด|ปลายเดือน|ไม่แพง|งบน้อย/, keys: ['$cheap'], label: 'ราคาประหยัด' },
+  ];
+  const NEG = /(ไม่เอา|ไม่กิน|ไม่อยาก|ไม่ชอบ|ไม่ต้องการ|ไม่|งด|เลี่ยง|ห้าม)\s*(กิน|ของ|อาหาร|ร้าน|พวก|อะไร|ที่|แบบ|รส)?\s*$/;
+
+  function parseNote(text) {
+    const out = { pos: [], neg: [], names: [] };
+    if (!text || !text.trim()) return out;
+    const t = text.toLowerCase();
+    for (const k of KEYWORDS) {
+      const re = new RegExp(k.re.source, 'g');
+      let m, isPos = false, isNeg = false;
+      while ((m = re.exec(t))) {
+        const before = t.slice(Math.max(0, m.index - 12), m.index);
+        if (NEG.test(before)) isNeg = true; else isPos = true;
+      }
+      if (isNeg) out.neg.push(k); else if (isPos) out.pos.push(k);
+    }
+    // พิมพ์ชื่อร้านมาตรงๆ
+    for (const r of window.RESTAURANTS) {
+      for (const n of [r.name, r.nameEn].filter(Boolean)) {
+        const i = t.indexOf(n.toLowerCase());
+        if (i >= 0) { out.names.push({ id: r.id, neg: NEG.test(t.slice(Math.max(0, i - 12), i)), label: r.name }); break; }
+      }
+    }
+    return out;
+  }
+  function hasKey(r, key) {
+    if (key === '$cheap') return r.price <= 1;
+    const tags = (window.RESTAURANT_TAGS || {})[r.id] || [];
+    return tags.includes(key) || r.cats.includes(key) || r.feat.includes(key);
+  }
+  // คืนค่า { bonus, hits: [label], avoided: [label], violated: [label] }
+  function noteScore(r, note) {
+    const res = { bonus: 0, hits: [], avoided: [], violated: [] };
+    for (const k of note.pos) if (k.keys.some((key) => hasKey(r, key))) { res.bonus += 24; res.hits.push(k.label); }
+    for (const k of note.neg) {
+      if (k.keys.some((key) => hasKey(r, key))) { res.bonus -= 35; res.violated.push(k.label); }
+      else res.avoided.push(k.label);
+    }
+    for (const n of note.names) if (n.id === r.id) { res.bonus += n.neg ? -80 : 60; if (!n.neg) res.hits.push('ร้าน' + n.label); }
+    res.bonus = Math.max(-80, Math.min(60, res.bonus));
+    return res;
   }
 
   /**
    * แนะนำร้าน
    * @param party  รายชื่อคนในตี้ (profile) — รวมตัวเองด้วย
    * @param conds  key ของเงื่อนไขที่เลือก
-   * @param opts   { exclude: [ids], search, location }
+   * @param opts   { exclude: [ids], note (ข้อความในกล่องรายละเอียด), location }
    * @returns { pick, ranked, relaxed, reasons, percent }
    */
   function recommend(party, conds = [], opts = {}) {
+    const note = parseNote(opts.note || opts.search || '');
     const exclude = opts.exclude || [];
     const partyType = party.length <= 1 ? 'solo' : 'friends';
     let pool = window.RESTAURANTS.filter((r) => !exclude.includes(r.id));
@@ -100,18 +171,25 @@
       const scores = party.map((p) => personScore(p, r, partyType));
       const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
       const min = Math.min(...scores);
-      const group = 0.6 * avg + 0.4 * min;
-      return { r, scores, avg, min, group };
+      const ns = noteScore(r, note);
+      const group = Math.max(1, 0.6 * avg + 0.4 * min + ns.bonus);
+      return { r, scores, avg, min, group, ns };
     }).sort((a, b) => b.group - a.group);
 
+    // ถ้ามีร้านที่ตรงกับ "รายละเอียดเพิ่มเติม" → สุ่มจากกลุ่มนั้นก่อน และเลี่ยงร้านที่มีของที่บอกว่าไม่เอา
+    let base = ranked;
+    const clean = base.filter((x) => !x.ns.violated.length);
+    if (clean.length) base = clean;
+    const withHits = base.filter((x) => x.ns.hits.length);
+    if (withHits.length) base = withHits;
     // สุ่มถ่วงน้ำหนักจาก 3 อันดับแรก
-    const top = ranked.slice(0, 3);
+    const top = base.slice(0, 3);
     const weights = top.map((t, i) => Math.max(1, t.group) * [1.6, 1.15, 1][i]);
     let x = Math.random() * weights.reduce((a, b) => a + b, 0);
     let chosen = top[0];
     for (let i = 0; i < top.length; i++) { x -= weights[i]; if (x <= 0) { chosen = top[i]; break; } }
 
-    const percent = Math.round(Math.max(55, Math.min(99, 35 + chosen.group * 0.68)));
+    const percent = Math.round(Math.max(55, Math.min(99, 35 + Math.min(100, chosen.group) * 0.64)));
     return {
       pick: chosen.r, ranked, relaxed, percent,
       reasons: buildReasons(chosen, party, conds, opts, relaxed),
@@ -125,6 +203,11 @@
     const condLabels = conds.map((k) => (window.CONDITIONS.find((c) => c.key === k) || {}).label).filter(Boolean);
     if (condLabels.length && !relaxed) out.push(`ตรงทุกเงื่อนไขที่ขอ: ${condLabels.join(', ')}`);
     if (relaxed && condLabels.length) out.push('ยังไม่มีร้านที่ตรงทุกเงื่อนไข เลยเลือกร้านที่ใกล้เคียงที่สุดให้แทน');
+    // กล่องรายละเอียดเพิ่มเติม
+    if (entry.ns) {
+      if (entry.ns.hits.length) out.push(`ตรงกับที่ขอ: ${[...new Set(entry.ns.hits)].join(', ')}`);
+      if (entry.ns.avoided.length) out.push(`ไม่มี${[...new Set(entry.ns.avoided)].join(' / ')} ตามที่บอกว่าไม่เอา`);
+    }
 
     // MBTI: ดูขั้ว E/I ของแก๊ง
     const known = party.filter((p) => p.mbti && p.mbti.length === 4);
@@ -157,7 +240,7 @@
       const minScore = Math.round(entry.min);
       if (minScore >= 60) out.push('ทุกคนในแก๊งพอใจร้านนี้ ไม่มีใครต้องฝืนใจ');
     }
-    return [...new Set(out)].slice(0, 5);
+    return [...new Set(out)].slice(0, 6);
   }
   function names(list) {
     const n = list.map((p) => p.display_name);
@@ -181,5 +264,5 @@
   }
 
   window.KRD = window.KRD || {};
-  window.KRD.match = { recommend, gangSummary, isOpenNow, distanceKm, personScore };
+  window.KRD.match = { recommend, gangSummary, isOpenNow, distanceKm, personScore, parseNote, noteScore };
 })();
