@@ -66,8 +66,8 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--brown); margin: 0; 
   height: var(--header-h);
 }
 .site-header .container { height: 100%; display: flex; align-items: center; justify-content: space-between; }
-.logo { display: block; width: 52px; height: 52px; border-radius: 12px; background: var(--cream); overflow: hidden; box-shadow: var(--shadow-sm); }
-.logo img { width: 100%; height: 100%; object-fit: cover; }
+.logo { display: block; width: 56px; height: 56px; }
+.logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .logo-fallback { width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--font-head); font-weight: 700; font-size: 11px; color: var(--brown); text-align: center; line-height: 1.05;
   background: radial-gradient(circle at 30% 30%, var(--yellow) 0 30%, transparent 31%), radial-gradient(circle at 75% 35%, var(--green) 0 26%, transparent 27%), radial-gradient(circle at 30% 75%, var(--blue) 0 26%, transparent 27%), radial-gradient(circle at 75% 75%, var(--pink) 0 26%, transparent 27%), var(--cream); }
 .main-nav { display: flex; align-items: center; gap: 36px; }
@@ -84,21 +84,33 @@ h1, h2, h3, h4 { font-family: var(--font-head); color: var(--brown); margin: 0; 
   :root { --header-h: 68px; }
   .main-nav { display: none; }
   .menu-btn { display: grid; }
+  /* เมนู ☰ = การ์ด "settings" ใน Figma */
   .mobile-menu {
-    position: fixed; top: var(--header-h); right: 12px; z-index: 60;
-    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 10px; min-width: 200px; flex-direction: column;
+    position: fixed; top: calc(var(--header-h) + 8px); right: 12px; z-index: 60;
+    width: min(308px, calc(100vw - 24px)); background: #FFFAEE; border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(127,77,47,.25); padding: 18px 20px 20px; flex-direction: column; gap: 16px;
+    animation: pop .16s ease-out; transform-origin: top right;
   }
   .mobile-menu.open { display: flex; }
-  .mobile-menu a { padding: 12px 16px; border-radius: 12px; font-family: var(--font-head); color: var(--brown); display: flex; gap: 10px; align-items: center; }
-  .mobile-menu a:hover, .mobile-menu a.active { background: var(--cream); }
+  .mm-head { display: flex; align-items: center; justify-content: space-between; }
+  .mm-head b { font-family: var(--font-head); color: var(--brown); font-size: 18px; }
+  .mm-close { width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--brown); color: #FFFAEE; display: grid; place-items: center; }
+  .mm-close .icon { width: 16px; height: 16px; }
+  .mm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .mm-pill { height: 46px; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-head); font-weight: 700; font-size: 16px; color: #fff; padding: 0 8px; white-space: nowrap; transition: transform .15s, box-shadow .15s; }
+  .mm-pill .icon { width: 20px; height: 20px; }
+  .mm-pill:active { transform: scale(.96); }
+  .mm-pill.active { box-shadow: 0 0 0 3px var(--brown) inset; }
+  .p-yellow { background: var(--yellow); } .p-pink { background: var(--pink); } .p-blue { background: var(--blue); } .p-green { background: var(--green); }
+  .mm-scan { height: 46px; border-radius: 20px; border: none; background: var(--brown); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-head); font-weight: 700; font-size: 16px; width: 100%; }
+  .mm-scan .icon { width: 22px; height: 22px; }
   .container { padding: 0 16px; }
 }
 
 /* ---------------- Footer ---------------- */
 .site-footer { background: var(--brown); color: var(--white); padding: 40px 0 24px; margin-top: 64px; }
 .footer-grid { display: grid; grid-template-columns: 1.3fr .7fr 1fr; gap: 32px; align-items: start; }
-.footer-logo { width: 140px; height: 140px; border-radius: 28px; }
+.footer-logo { width: 150px; height: 150px; }
 .footer-logo .logo-fallback { font-size: 22px; }
 .footer-links { display: flex; flex-direction: column; gap: 10px; font-family: var(--font-head); font-size: 15px; }
 .footer-contact h4 { color: var(--white); font-size: 20px; margin-bottom: 10px; }
@@ -203,19 +215,20 @@ textarea.input { resize: vertical; min-height: 96px; }
   display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto;
   animation: fade .15s ease-out;
 }
+/* ทุก popup ทั้งเว็บ: กรอบน้ำตาล + แถบหัวน้ำตาล + หัวข้อตัวขาวตรงกลาง + ไอคอน + ปุ่ม ✕ */
 .modal {
   background: var(--white); border-radius: var(--radius-lg); box-shadow: 0 10px 40px rgba(127,77,47,.25);
   width: 100%; max-width: 520px; max-height: calc(100vh - 32px); overflow-y: auto; position: relative;
-  border: 8px solid var(--yellow);
+  border: 6px solid var(--brown);
   animation: pop .18s ease-out;
 }
-.modal.brown { border-color: var(--brown); }
 .modal.wide { max-width: 760px; }
-.modal-head { background: var(--yellow); padding: 16px 24px; display: flex; align-items: center; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 1; }
-.modal.brown .modal-head { background: var(--brown); }
-.modal-head h3 { color: var(--brown); font-size: 22px; display: flex; gap: 10px; align-items: center; }
-.modal.brown .modal-head h3 { color: var(--white); }
-.modal-close { position: absolute; right: 12px; top: 12px; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,.7); color: var(--brown); display: grid; place-items: center; z-index: 2; }
+.modal-head { background: var(--brown); padding: 14px 56px; min-height: 60px; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 1; }
+.modal-head h3 { color: var(--white); font-size: 22px; display: flex; gap: 10px; align-items: center; justify-content: center; text-align: center; }
+.modal-head h3 .icon { width: 28px; height: 28px; }
+.modal-head .modal-close { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.16); color: var(--white); }
+.modal-head .modal-close:hover { background: rgba(255,255,255,.28); }
+.modal-close { position: absolute; right: 12px; top: 12px; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(127,77,47,.08); color: var(--brown); display: grid; place-items: center; z-index: 2; }
 .modal-body { padding: 24px 28px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
 @keyframes fade { from { opacity: 0; } }
@@ -249,10 +262,11 @@ textarea.input { resize: vertical; min-height: 96px; }
 .ph-3 { background: linear-gradient(135deg, #d8eaf6, #a9cfe8); }
 .cover { width: 100%; height: 100%; object-fit: cover; }
 
-.fav-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(255,255,255,.92); color: var(--brown); display: grid; place-items: center; transition: transform .15s; }
+/* หัวใจทั้งเว็บ: วงกลมขาว · ยังไม่เลือก = เส้นขอบน้ำตาล / เลือกแล้ว = หัวใจทึบชมพูแดง #C4554D (ขนาดเท่ากัน) */
+.fav-btn { width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--white); color: var(--brown); display: grid; place-items: center; transition: transform .15s; box-shadow: 0 2px 8px rgba(127,77,47,.18); }
 .fav-btn:hover { transform: scale(1.08); }
 .fav-btn .icon { width: 24px; height: 24px; }
-.fav-btn.on { color: #e0566b; }
+.fav-btn.on { color: #C4554D; }
 
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 @media (max-width: 1023px) { .grid-4 { grid-template-columns: repeat(3, 1fr); } }
@@ -267,9 +281,16 @@ textarea.input { resize: vertical; min-height: 96px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------------- Dice overlay ---------------- */
-.dice-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(255,248,233,.94); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
-.dice-overlay .dice-big { width: 160px; height: 160px; animation: roll .45s ease-in-out infinite; }
-.dice-overlay p { font-family: var(--font-head); font-size: 26px; color: var(--brown); margin: 0; }
+.dice-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(255,248,233,.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; animation: fade .15s ease-out; transition: opacity .18s; }
+.dice-overlay.out { opacity: 0; }
+.dice-pop { animation: dice-in .28s cubic-bezier(.3,1.6,.5,1) both; }
+.dice-ring { width: 220px; height: 220px; border-radius: 50%; padding: 12px; background: conic-gradient(from 200deg, var(--pink), var(--yellow), var(--green), var(--blue), var(--pink)); box-shadow: 0 16px 40px rgba(127,77,47,.25); animation: dice-shake .3s ease-in-out .28s infinite; }
+.dice-ring .dice-svg { width: 100%; height: 100%; border-radius: 50%; background: var(--white); display: grid; place-items: center; }
+.dice-ring svg { width: 62%; height: auto; }
+.dice-overlay p { font-family: var(--font-head); font-size: 22px; color: var(--brown); margin: 0; background: rgba(255,255,255,.85); padding: 6px 18px; border-radius: 999px; }
+@keyframes dice-in { from { transform: scale(.3); opacity: 0; } }
+@keyframes dice-shake { 0%, 100% { transform: rotate(0) translateX(0); } 20% { transform: rotate(-14deg) translateX(-6px); } 40% { transform: rotate(10deg) translateX(5px); } 60% { transform: rotate(-8deg) translateX(-4px); } 80% { transform: rotate(6deg) translateX(3px); } }
+@media (max-width: 767px) { .dice-ring { width: 170px; height: 170px; } .dice-overlay p { font-size: 18px; } }
 @keyframes roll {
   0% { transform: rotate(0) translateY(0); }
   25% { transform: rotate(90deg) translateY(-24px); }

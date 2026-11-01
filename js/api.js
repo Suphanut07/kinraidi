@@ -122,7 +122,7 @@
         return db.groups.filter((g) => g.member_ids.includes(id)).map((g) => ({
           id: g.id, name: g.name, photo_url: g.photo_url, created_by: g.created_by,
           members: g.member_ids.map((m) => pub(db.users[m])).filter(Boolean),
-        }));
+        })).reverse();   // กลุ่มใหม่สุดก่อน
       },
       async createGroup({ name, photo_url = '', member_ids = [] }) {
         reload(); const id = need();
@@ -254,7 +254,7 @@
         const id = await need();
         const mine = chk(await sb.from('group_members').select('group_id').eq('user_id', id)).map((r) => r.group_id);
         if (!mine.length) return [];
-        const groups = chk(await sb.from('groups').select('*, group_members(profiles(*))').in('id', mine).order('created_at'));
+        const groups = chk(await sb.from('groups').select('*, group_members(profiles(*))').in('id', mine).order('created_at', { ascending: false }));   // กลุ่มใหม่สุดก่อน
         return groups.map((g) => ({
           id: g.id, name: g.name, photo_url: g.photo_url, created_by: g.created_by,
           members: (g.group_members || []).map((m) => normProfile(m.profiles)).filter(Boolean),

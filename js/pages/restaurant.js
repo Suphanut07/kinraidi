@@ -9,7 +9,7 @@
     page.innerHTML = `<div class="container"><div class="empty-state" style="margin-top:48px"><div class="big">🍽️</div><h3>ไม่พบร้านนี้</h3><br><a class="btn btn-primary" href="index.html">กลับหน้าหลัก</a></div></div>`;
     return;
   }
-  document.title = `${r.name} — กินรัยดี`;
+  document.title = r.name;
   let favIds = [];
   if (me) { try { favIds = (await KRD.api.listFavorites()).map((f) => f.restaurant_id); } catch {} }
 

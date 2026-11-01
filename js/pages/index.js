@@ -2,6 +2,8 @@
    หน้าหลัก: สุ่มร้าน / มื้อนี้ไปกับใคร / เงื่อนไข / รายละเอียดเพิ่มเติม / ร้านแนะนำ
    - วงกลมโปรไฟล์ว่าง → popup รายชื่อสมาชิก (เลือกเพื่อนเข้ามื้อ)
    - ปุ่ม +          → popup "มาจอยกัน !" (สแกน QR / QR ของฉัน / รหัสเพื่อน)
+   - กด "QR ของฉัน"   → เป็นหัวทีม: คนที่สแกนจะถูกดึงเข้าตี้อัตโนมัติ (เด้งโปรไฟล์ทีละคน)
+   - ปุ่มลูกเต๋าลอย  → โผล่เมื่อเลื่อนจนปุ่มสุ่มใหญ่พ้นจอ
    - กดรูปคนในตี้     → ดูโปรไฟล์ + ปุ่มเอาออกจากมื้อนี้
    ========================================================= */
 (async function () {
@@ -28,15 +30,23 @@
   }
 
   /* ---------- layout ---------- */
-  const foods = [
-    { t: '0%', l: '51%', s: 70, e: '🍤' }, { t: '18%', l: '58%', s: 56, e: '🥬' }, { t: '-2%', l: '76%', s: 74, e: '🍲' },
-    { t: '0%', l: '93%', s: 70, e: '🍗' }, { t: '28%', l: '84%', s: 96, e: '🍝' }, { t: '45%', l: '96%', s: 70, e: '🍚' },
-    { t: '58%', l: '86%', s: 118, e: '🍛' }, { t: '86%', l: '62%', s: 60, e: '🥟' }, { t: '86%', l: '76%', s: 74, e: '🥗' }, { t: '92%', l: '53%', s: 56, e: '🍜' },
+  // จานอาหารตกแต่ง (รูปจากทีม assets/plates/plate1-7.png) — ตำแหน่งคอม/แท็บเล็ต (t,l,s) และมือถือ (mt,ml,ms; ms=0 คือซ่อน)
+  const plates = [
+    { t: '0%', l: '50%', s: 84, mt: '-1%', ml: '-5%', ms: 62 },
+    { t: '20%', l: '58%', s: 66, mt: '0%', ml: '83%', ms: 58 },
+    { t: '-4%', l: '75%', s: 90, mt: '46%', ml: '86%', ms: 48 },
+    { t: '0%', l: '92%', s: 84, mt: '50%', ml: '-1%', ms: 66 },
+    { t: '28%', l: '84%', s: 110, mt: '66%', ml: '77%', ms: 68 },
+    { t: '47%', l: '95%', s: 84, mt: '83%', ml: '5%', ms: 52 },
+    { t: '60%', l: '86%', s: 130, mt: '86%', ml: '86%', ms: 46 },
+    { t: '84%', l: '61%', s: 72, mt: '0', ml: '0', ms: 0 },
+    { t: '84%', l: '75%', s: 86, mt: '0', ml: '0', ms: 0 },
+    { t: '90%', l: '52%', s: 66, mt: '0', ml: '0', ms: 0 },
   ];
   document.getElementById('page').innerHTML = `
     <section class="hero">
-      ${foods.map((f, i) => `<span class="food-deco" style="top:${f.t};left:${f.l};width:${f.s}px;height:${f.s}px;font-size:${f.s / 3.2}px">
-          ${KRD.assetImg(`hero/food${(i % 7) + 1}.png`, { emoji: f.e, lazy: false })}</span>`).join('')}
+      ${plates.map((f, i) => `<span class="food-deco" style="--t:${f.t};--l:${f.l};--s:${f.s}px;--mt:${f.mt};--ml:${f.ml};--ms:${f.ms}px">
+          ${KRD.assetImg(`plates/plate${(i % 7) + 1}.png`, { emoji: '🍽️', lazy: false })}</span>`).join('')}
       <div class="container">
         <div>
           <h1>กินรัยดี !</h1>
@@ -132,26 +142,25 @@
       return;
     }
     const party = S.party;
-    const emptySlots = Math.max(1, 3 - Math.max(0, party.length - 4));
     partyArea.innerHTML = `
       <div class="party">
         <button class="slot" data-person="${me.id}" title="${esc(me.display_name)} (คุณ)">${avatarHTML(me)}<span class="me-tag">ฉัน</span></button>
         ${party.map((p) => `<button class="slot" data-person="${p.id}" title="ดูโปรไฟล์ ${esc(p.display_name)}">${avatarHTML(p)}</button>`).join('')}
-        ${Array.from({ length: emptySlots }, () => `<button class="slot" data-pick title="เลือกจากรายชื่อสมาชิก">${avatarHTML(null)}</button>`).join('')}
+        <button class="slot" data-pick title="เลือกจากรายชื่อสมาชิก">${avatarHTML(null)}</button>
         <button class="add-btn" id="join-btn" title="มาจอยกัน ! (สแกน QR / รหัสเพื่อน)" aria-label="ชวนเพื่อนมาจอย">${icon('plus')}</button>
       </div>
       <p class="party-name">${party.length ? `ไปกันทั้งหมด ${party.length + 1} คน · กดที่รูปเพื่อดูโปรไฟล์` : 'ยังไม่ได้เลือกใคร = สุ่มสำหรับคุณคนเดียว'}</p>
       <div class="group-select">
         <button id="group-btn" type="button">
           ${selectedGroup ? groupAvatar(selectedGroup) : avatarHTML(null)}
-          <span>${selectedGroup ? esc(selectedGroup.name) : 'เลือกกลุ่ม'}</span>
+          <span class="g-name">${selectedGroup ? esc(selectedGroup.name) : 'เลือกกลุ่ม'}</span>
           <span class="caret">${icon('chevronDown')}</span>
         </button>
       </div>`;
     partyArea.querySelectorAll('[data-person]').forEach((b) => b.addEventListener('click', () => openPerson(b.dataset.person)));
     partyArea.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', openFriendPicker));
     document.getElementById('join-btn').addEventListener('click', () =>
-      KRD.people.joinPopup(me, { mode: 'meal', onAdded: (p) => { addToParty([p]); if (!friends.some((f) => f.id === p.id)) friends.push(p); } }));
+      KRD.people.joinPopup(me, { mode: 'meal', onAdded: (p) => { selectedGroup = null; addToParty([p]); if (!friends.some((f) => f.id === p.id)) friends.push(p); } }));
     document.getElementById('group-btn').addEventListener('click', openGroupMenu);
   }
   function groupAvatar(g) {
@@ -226,15 +235,55 @@
     });
   }
 
+  /* ---------- หัวทีมรับคนที่สแกน QR เข้ามื้อ ----------
+     เริ่มเมื่อกด "QR ของฉัน" ในหน้านี้ แล้วรับต่อไปเรื่อยๆ ตราบที่ยังอยู่หน้าสุ่มเลย
+     มีคนเข้ามา → เพิ่มเข้าตี้ + เด้งโปรไฟล์ทีละคน */
+  const HOST_KEY = 'krd_host_since', SEEN_KEY = 'krd_host_seen';
+  let hostTimer = null;
+  const queue = []; let showing = false;
+  function showNextJoiner() {
+    if (showing || !queue.length) return;
+    showing = true;
+    const p = queue.shift();
+    KRD.people.successPopup(p, { title: 'มีคนเข้าร่วม !', text: `<b>${esc(p.display_name)}</b> เข้าร่วมมื้อนี้แล้ว 🎉`, onDone: () => { showing = false; showNextJoiner(); } });
+  }
+  async function pollJoins() {
+    if (document.hidden) return;
+    const since = sessionStorage.getItem(HOST_KEY);
+    let seen = [];
+    try { seen = JSON.parse(sessionStorage.getItem(SEEN_KEY)) || []; } catch {}
+    try {
+      const fresh = (await KRD.api.getMealJoins(me.id, since)).filter((p) => p && !seen.includes(p.id) && p.id !== me.id);
+      if (!fresh.length) return;
+      sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen, ...fresh.map((p) => p.id)]));
+      selectedGroup = null;
+      addToParty(fresh);
+      fresh.forEach((p) => { if (!friends.some((f) => f.id === p.id)) friends.push(p); queue.push(p); });
+      showNextJoiner();
+    } catch {}
+  }
+  function startHosting() {
+    if (!sessionStorage.getItem(HOST_KEY)) sessionStorage.setItem(HOST_KEY, new Date(Date.now() - 2000).toISOString());
+    if (!hostTimer) hostTimer = setInterval(pollJoins, 3000);
+  }
+  if (me) {
+    document.addEventListener('krd:host-qr', startHosting);
+    if (sessionStorage.getItem(HOST_KEY)) { startHosting(); pollJoins(); }
+  }
+
   /* ---------- สุ่ม! ---------- */
   document.getElementById('roll').addEventListener('click', roll);
+  KRD.fabDice({ onClick: roll, watch: document.getElementById('roll') });
+  let rolling = false;
   async function roll() {
+    if (rolling) return;
     if (!me) { toast('เข้าสู่ระบบก่อนนะ แล้วค่อยสุ่มกัน'); setTimeout(() => (location.href = 'login.html'), 900); return; }
     const party = [me, ...S.party];
     const conds = S.conds;
     const note = S.note.trim();
     const result = KRD.match.recommend(party, conds, { note, location: userLoc });
     if (!result) { toast('ไม่พบร้านเลย ลองเปลี่ยนเงื่อนไขดูนะ', 'error'); return; }
+    rolling = true;
     sessionStorage.setItem('krd_roll', JSON.stringify({
       party: S.party, conds, note, location: userLoc, exclude: [],
       current: { id: result.pick.id, percent: result.percent, reasons: result.reasons, relaxed: result.relaxed },

@@ -1,7 +1,8 @@
 /* =========================================================
    หน้าผลลัพธ์ "นี่คือร้านอาหารของคุณ !!"
    ลำดับ: การ์ดร้าน + แผนที่ → การ์ดเหตุผล (แมตช์ % | ทำไมถึงเป็นร้านนี้ | แก๊งนี้) → บรรยากาศ + เมนู
-   ปุ่มลูกเต๋าลอย (ทุกขนาดจอ) = สุ่มใหม่ (ตัดร้านนี้ออก) · ลากไปวางตรงไหนก็ได้ เบราว์เซอร์จำตำแหน่งไว้
+   หัวหน้า: ปุ่มลูกเต๋าใหญ่ + จานอาหาร (เหมือนหน้าสุ่มเลย) — กด = สุ่มใหม่ (ตัดร้านนี้ออก)
+   ปุ่มลูกเต๋าลอย (ทุกขนาดจอ) โผล่เมื่อเลื่อนพ้นปุ่มใหญ่ · ลากไปวางตรงไหนก็ได้ เบราว์เซอร์จำตำแหน่งไว้
    บนมือถือ "สุ่มเลย !" ในเมนู ☰ ก็สุ่มใหม่ได้เหมือนกัน
    ========================================================= */
 (async function () {
@@ -34,28 +35,43 @@
           <ul>${state.current.reasons.map((x) => `<li>${icon('check')}<span>${esc(x)}</span></li>`).join('')}</ul>
           ${note ? `<p class="why-note">${icon('pencil')} สิ่งที่ขอ: “${esc(note)}”</p>` : ''}
         </div>
-        <div class="why-col why-gang">
+        <div class="why-col why-gang"><div class="why-gang-in">
           <h3>${icon('users')} ${title}</h3>
           ${gang ? `<p class="gang-sum">${gang.counts ? `<b>${gang.counts}</b>${gang.unknown ? ` · ไม่ระบุ MBTI ${gang.unknown}` : ''}<br>` : ''}${esc(gang.text)}</p>`
                  : '<p class="gang-sum hint">ยังไม่มีใครระบุ MBTI</p>'}
           <div class="gang-list">${p.map((x) => `
             <button class="gang-person" data-person="${x.id}" title="ดูโปรไฟล์">${avatarHTML(x)}
               <span class="gp-name">${esc(x.display_name)}${x.id === me.id ? ' (ฉัน)' : ''}</span>${mbtiBadge(x.mbti)}</button>`).join('')}</div>
-        </div>
+        </div></div>
       </section>`;
   }
 
+  const plates = [
+    { t: '6%', l: '-7%', s: 120, mt: '2%', ml: '-6%', ms: 64 },
+    { t: '-2%', l: '42%', s: 84, mt: '-2%', ml: '80%', ms: 58 },
+    { t: '52%', l: '33%', s: 62, mt: '30%', ml: '2%', ms: 46 },
+    { t: '4%', l: '93%', s: 76, mt: '34%', ml: '85%', ms: 50 },
+    { t: '58%', l: '97%', s: 60, mt: '0', ml: '0', ms: 0 },
+  ];
   function render() {
     const r = KRD.getRestaurant(state.current.id);
     if (!r) { location.replace('index.html'); return; }
     const page = document.getElementById('page');
     page.innerHTML = `
       <div class="container">
-        <section class="result-head"><h1>นี่คือร้านอาหารของคุณ !!</h1></section>
+        <section class="result-head">
+          ${plates.map((f, i) => `<span class="food-deco" style="--t:${f.t};--l:${f.l};--s:${f.s}px;--mt:${f.mt};--ml:${f.ml};--ms:${f.ms}px">
+            ${KRD.assetImg(`plates/plate${[1, 4, 6, 3, 7][i]}.png`, { emoji: '🍽️', lazy: false })}</span>`).join('')}
+          <button class="dice-btn" id="reroll" aria-label="สุ่มใหม่"><span class="inner"><span class="dice-svg">${diceSVG(120)}</span><span class="label">สุ่มเลย !</span></span></button>
+          <h1>นี่คือร้านอาหารของคุณ !!</h1>
+        </section>
         ${KRD.detail.topHTML(r, { fav: favIds.includes(r.id) })}
         ${whyCardHTML()}
         ${KRD.detail.bottomHTML(r)}
       </div>`;
+    page.querySelector('#reroll').addEventListener('click', reroll);
+    if (fab) fab.remove();
+    fab = KRD.fabDice({ onClick: reroll, watch: page.querySelector('#reroll') });
     KRD.detail.bindGallery(page, r);
     page.querySelectorAll('[data-person]').forEach((b) => b.addEventListener('click', () => {
       const x = party().find((y) => y.id === b.dataset.person);
@@ -63,7 +79,7 @@
     }));
   }
 
-  let rolling = false;
+  let rolling = false, fab = null;
   async function reroll() {
     if (rolling) return; rolling = true;
     state.exclude = [...new Set([...(state.exclude || []), state.current.id])];
@@ -79,81 +95,11 @@
     state.current = { id: res.pick.id, percent: res.percent, reasons: res.reasons, relaxed: res.relaxed };
     sessionStorage.setItem('krd_roll', JSON.stringify(state));
     try { await KRD.api.addHistory(res.pick.id, party().map((x) => ({ id: x.id, name: x.display_name }))); } catch {}
-    await KRD.diceRoll(1100);
+    await KRD.diceRoll();
     render();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     rolling = false;
   }
 
-  /* ---------- ปุ่มลูกเต๋าลอย (ลากได้ / กด = สุ่มใหม่) ---------- */
-  function floatingDice() {
-    const KEY = 'krd_fab_pos';
-    const fab = document.createElement('button');
-    fab.className = 'fab-dice';
-    fab.setAttribute('aria-label', 'สุ่มใหม่ (ลากเพื่อย้ายปุ่มได้)');
-    fab.innerHTML = `<span class="fab-inner">${diceSVG(54)}<span>สุ่มเลย !</span></span>`;
-    document.body.appendChild(fab);
-
-    const size = () => fab.getBoundingClientRect();
-    const clamp = (x, y) => {
-      const r = size(), m = 8;
-      return [Math.min(Math.max(m, x), innerWidth - r.width - m), Math.min(Math.max(m, y), innerHeight - r.height - m)];
-    };
-    const place = (x, y) => { [x, y] = clamp(x, y); fab.style.left = x + 'px'; fab.style.top = y + 'px'; return [x, y]; };
-    // ตำแหน่งเก็บเป็นสัดส่วนของหน้าจอ (หมุนจอ/ย่อหน้าต่างแล้วยังอยู่ประมาณเดิม)
-    const restore = () => {
-      let pos = null;
-      try { pos = JSON.parse(localStorage.getItem(KEY)); } catch {}
-      const r = size();
-      if (pos) place(pos.x * innerWidth, pos.y * innerHeight);
-      else place(innerWidth - r.width - 20, innerHeight - r.height - 24);
-    };
-    restore();
-    addEventListener('resize', restore);
-
-    let start = null, moved = false;
-    fab.addEventListener('pointerdown', (e) => {
-      const r = size();
-      start = { px: e.clientX, py: e.clientY, x: r.left, y: r.top };
-      moved = false;
-      fab.setPointerCapture(e.pointerId);
-    });
-    fab.addEventListener('pointermove', (e) => {
-      if (!start) return;
-      const dx = e.clientX - start.px, dy = e.clientY - start.py;
-      if (!moved && Math.hypot(dx, dy) < 6) return;   // ขยับนิดเดียว = ยังนับเป็นการกด
-      moved = true;
-      fab.classList.add('dragging');
-      place(start.x + dx, start.y + dy);
-    });
-    const end = () => {
-      if (!start) return;
-      fab.classList.remove('dragging');
-      if (moved) {
-        const r = size();
-        try { localStorage.setItem(KEY, JSON.stringify({ x: r.left / innerWidth, y: r.top / innerHeight })); } catch {}
-      } else reroll();
-      start = null;
-    };
-    fab.addEventListener('pointerup', end);
-    fab.addEventListener('pointercancel', () => { start = null; fab.classList.remove('dragging'); });
-    fab.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); reroll(); } });
-
-    // ครั้งแรกบอกว่าลากได้
-    let seen = false;
-    try { seen = localStorage.getItem('krd_fab_tip') === '1'; localStorage.setItem('krd_fab_tip', '1'); } catch {}
-    if (!seen) {
-      const tip = document.createElement('div');
-      tip.className = 'fab-tip';
-      tip.textContent = 'กดเพื่อสุ่มใหม่ · ลากไปวางตรงไหนก็ได้';
-      document.body.appendChild(tip);
-      const r = size();
-      tip.style.left = Math.min(innerWidth - 248, Math.max(8, r.left + r.width / 2 - 120)) + 'px';
-      tip.style.top = (r.top > 70 ? r.top - 60 : r.bottom + 10) + 'px';
-      setTimeout(() => tip.remove(), 4500);
-    }
-  }
-
   render();
-  floatingDice();
 })();

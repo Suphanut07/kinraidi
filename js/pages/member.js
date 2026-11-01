@@ -1,7 +1,7 @@
 /* =========================================================
    หน้าสมาชิก: กลุ่มของฉัน + รายชื่อสมาชิก (พับ/กางได้ทั้งสองส่วน)
    - การ์ด "สร้างกลุ่มใหม่" และ "เพิ่ม" อยู่เป็นการ์ดแรกเสมอ
-   - สร้างกลุ่ม (ชื่อ, รูปจากอัปโหลด/กล้อง, เลือกสมาชิก)
+   - สร้างกลุ่ม (การ์ดตัวอย่างแบบ Figma: พิมพ์ชื่อในแถบเหลือง, ปุ่มเพิ่มรูปมุมขวาล่าง, เลือกสมาชิก) — กลุ่มใหม่สุดอยู่ก่อน
    - จัดการกลุ่ม (สมาชิกทุกคนทำได้): เปลี่ยนชื่อ/รูป, เพิ่ม/เอาออก, ออกจากกลุ่ม, ลบกลุ่ม
    - เพิ่มเพื่อน → popup "มาจอยกัน !" (สแกน QR บนมือถือ/แท็บเล็ต · QR ของฉัน · รหัสเพื่อน) เป็นเพื่อนกันทันที
    ========================================================= */
@@ -24,7 +24,8 @@
     render();
   }
 
-  const groupPhoto = (g) => g.photo_url ? `<img src="${esc(g.photo_url)}" alt="">` : `<div class="ph ph-${g.name.length % 4}">👥</div>`;
+  // ไม่มีรูปกลุ่ม → ไอคอน Groups สีขาวบนพื้นพาสเทล
+  const groupPhoto = (g) => g.photo_url ? `<img src="${esc(g.photo_url)}" alt="">` : `<div class="ph ph-${g.name.length % 4} gph">${icon('users')}</div>`;
 
   function sectionHead(key, iconName, title, count) {
     const open = !fold[key];
@@ -82,75 +83,75 @@
     <button class="friend-card" data-friend="${f.id}">${avatarHTML(f)}
       <span style="min-width:0"><span class="name">${esc(f.display_name)}</span>${mbtiBadge(f.mbti)}</span></button>`;
 
-  /* ---------- สร้าง / แก้ไขกลุ่ม ---------- */
+  /* ---------- สร้าง / แก้ไขกลุ่ม (ตาม Figma) ----------
+     การ์ดตัวอย่าง: พื้นที่รูป (ยังไม่มีรูป = ไอคอนคน 3 คน) + แถบเหลืองที่พิมพ์ชื่อกลุ่มได้ทันที + "x members"
+     ปุ่มเพิ่มรูป (ไอคอน image-add) ที่มุมขวาล่างของการ์ด · แก้ไขกลุ่ม = การ์ดเดียวกันแต่ไม่มีส่วนเลือกสมาชิก */
   function openGroupForm(group = null) {
     const editing = !!group;
     let photoBlob = null;
-    const selected = new Set(editing ? group.members.map((m) => m.id).filter((id) => id !== me.id) : []);
+    const selected = new Set();
+    const count = () => (editing ? group.members.length : selected.size + 1);
     openModal({
-      title: editing ? 'แก้ไขกลุ่ม' : 'สร้างกลุ่ม', iconName: 'users',
+      title: editing ? 'แก้ไขกลุ่ม' : 'สร้างกลุ่มใหม่', iconName: 'users',
       body: `
-        <form id="gf" novalidate>
-          <div class="field"><label>รูปภาพกลุ่ม</label>
-            <div class="group-photo-preview" id="gp">${editing && group.photo_url ? `<img src="${esc(group.photo_url)}" alt="">` : `${icon('image')}&nbsp;ยังไม่มีรูป`}</div>
-            <div class="group-photo-pick">
-              <label class="btn btn-sm">${icon('image')} อัปโหลด<input type="file" accept="image/*" hidden data-photo></label>
-              <label class="btn btn-sm">${icon('camera')} ถ่ายรูป<input type="file" accept="image/*" capture="environment" hidden data-photo></label>
-            </div></div>
-          <div class="field"><label>ชื่อกลุ่ม</label>
-            <input class="input" name="name" maxlength="40" placeholder="ตั้งชื่อกลุ่มของคุณ..." value="${editing ? esc(group.name) : ''}"></div>
+        <form id="gf" class="group-form" novalidate>
+          <div class="gcard-preview">
+            <div class="gcard-photo" id="gp">${editing && group.photo_url ? `<img src="${esc(group.photo_url)}" alt="">` : `<div class="gph-empty">${icon('users')}</div>`}</div>
+            <div class="gcard-strip">
+              <input class="gcard-name" name="name" maxlength="40" placeholder="ตั้งชื่อกลุ่ม..." value="${editing ? esc(group.name) : ''}" aria-label="ชื่อกลุ่ม">
+              <span class="count">${icon('users')} <span id="cnt">${count()}</span> members</span>
+            </div>
+            <label class="gcard-add" title="เพิ่มรูปกลุ่ม" aria-label="เพิ่มรูปกลุ่ม">${icon('imageAdd')}<input type="file" accept="image/*" hidden data-photo></label>
+          </div>
           ${editing ? '' : `
-          <div class="field"><label>สมาชิก <span class="hint" id="cnt">(${selected.size + 1} members)</span></label>
-            ${friends.length ? `<div class="pick-list" style="max-height:260px">${friends.map((f) => `
+          <div class="field gf-members"><label>สมาชิก</label>
+            ${friends.length ? `<div class="pick-list" style="max-height:240px">${friends.map((f) => `
               <div class="pick-row">${avatarHTML(f)}<div class="who"><strong>${esc(f.display_name)}</strong>${mbtiBadge(f.mbti)}</div>
               <button type="button" class="add" data-sel="${f.id}">${icon('plusCircle')} <span>เพิ่ม</span></button></div>`).join('')}</div>`
               : '<p class="hint">ยังไม่มีเพื่อน — สร้างกลุ่มไปก่อนแล้วค่อยเพิ่มสมาชิกทีหลังได้</p>'}
           </div>`}
-          <p class="error-text" id="g-err"></p>
-          <div class="modal-actions"><button type="button" class="btn" data-cancel>ยกเลิก</button>
+          <p class="error-text" id="g-err" style="text-align:center"></p>
+          <div class="modal-actions" style="justify-content:center"><button type="button" class="btn" data-cancel>ยกเลิก</button>
             <button type="submit" class="btn btn-primary">${editing ? 'บันทึก' : 'สร้างกลุ่ม'}</button></div>
         </form>`,
       onMount(el, close) {
         const f = el.querySelector('#gf'), err = el.querySelector('#g-err');
         el.querySelector('[data-cancel]').onclick = close;
-        el.querySelectorAll('[data-photo]').forEach((inp) => inp.addEventListener('change', async () => {
-          const file = inp.files[0]; if (!file) return;
+        if (!editing) setTimeout(() => f.name.focus(), 50);
+        el.querySelector('[data-photo]').addEventListener('change', async (e) => {
+          const file = e.target.files[0]; if (!file) return;
           photoBlob = await KRD.resizeImage(file, KRD.api.mode === 'demo' ? 400 : 900);
           el.querySelector('#gp').innerHTML = `<img src="${URL.createObjectURL(photoBlob)}" alt="">`;
-          toast('เพิ่มรูปสำเร็จ ✓');
-        }));
+        });
         el.querySelectorAll('[data-sel]').forEach((b) => b.addEventListener('click', () => {
           const id = b.dataset.sel;
           selected.has(id) ? selected.delete(id) : selected.add(id);
           const on = selected.has(id);
           b.classList.toggle('on', on);
           b.innerHTML = `${icon(on ? 'check' : 'plusCircle')} <span>${on ? 'เพิ่มแล้ว' : 'เพิ่ม'}</span>`;
-          el.querySelector('#cnt').textContent = `(${selected.size + 1} members)`;
+          el.querySelector('#cnt').textContent = count();
         }));
         f.addEventListener('submit', async (e) => {
           e.preventDefault(); err.textContent = '';
           const name = f.name.value.trim();
-          if (!name) { err.textContent = 'กรุณาตั้งชื่อกลุ่ม'; return; }
+          if (!name) { err.textContent = 'กรุณาตั้งชื่อกลุ่ม (พิมพ์ในแถบสีเหลืองได้เลย)'; f.name.focus(); return; }
           const btn = f.querySelector('[type=submit]'); btn.disabled = true;
           try {
             const photo_url = photoBlob ? await KRD.api.uploadImage(photoBlob, 'groups') : (editing ? group.photo_url : '');
             if (editing) await KRD.api.updateGroup(group.id, { name, photo_url });
             else await KRD.api.createGroup({ name, photo_url, member_ids: [...selected] });
             close();
+            // สร้างเสร็จ → ปิด popup แล้วโชว์กลุ่มใหม่เป็นอันแรก (ไม่มี popup แจ้งสำเร็จ)
+            fold.groups = false; saveFold();
             await load();
-            if (!editing) successPop(`สร้างกลุ่ม "${name}" สำเร็จ!`);
-            else toast('บันทึกกลุ่มแล้ว ✓');
+            toast(editing ? 'บันทึกกลุ่มแล้ว ✓' : `สร้างกลุ่ม "${name}" แล้ว ✓`);
+            if (!editing) {
+              const card = page.querySelector('[data-group]');
+              if (card) { card.classList.add('just-added'); card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            }
           } catch (ex) { err.textContent = ex.message; btn.disabled = false; }
         });
       },
-    });
-  }
-
-  function successPop(msg) {
-    openModal({
-      noHead: true,
-      body: `<div class="success-pop"><div class="big">🎉</div><h3>${esc(msg)}</h3><br><button class="btn btn-primary" data-ok>ตกลง</button></div>`,
-      onMount(el, close) { el.querySelector('[data-ok]').onclick = close; },
     });
   }
 
