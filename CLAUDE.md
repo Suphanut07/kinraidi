@@ -71,7 +71,7 @@ GitHub `Suphanut07/kinraidi` (public) → Vercel auto-deploy → https://kinraid
 
 ## งานที่ยังค้าง
 - [x] รูปร้าน 12 ร้าน (hongyok ... jenidbualoy) — ใส่แล้ว 30 ต.ค. 2026 (ได้รับอนุญาตจากร้าน) / hongyok-2, snowwhite-2 รูปเล็ก ควรหารูปชัดกว่านี้
-- [ ] ร้านที่มีแค่รูปหลัก (ยังขาด -2, -3): kruatoke, yoisoup, bakeTillWeDie, yumwa, kruakhunmiang
+- [x] รูป -2/-3 ของ kruatoke, yoisoup, bakeTillWeDie, yumwa, kruakhunmiang — ใส่รูปฟรีจาก Unsplash (Unsplash License) แล้ว 2 พ.ย. อยู่ใน Supabase bucket `restaurants` (ไม่ใช่รูปจากร้านจริง ทีมเลือกไม่ติดป้าย) ช่างภาพ: kruatoke-2 Jenevy Vergara, kruatoke-3 sicong gao, kruakhunmiang-2 Caramel, kruakhunmiang-3 Kittitep Khotchalee, yoisoup-2 Zhen Yao, yoisoup-3 Ruthy Yang, bakeTillWeDie-2 Margarita Cherniak, bakeTillWeDie-3 Nathan Dumlao, yumwa-2 Zoshua Colah, yumwa-3 Hiang Kanjinna — ถ้าได้รูปจริงจากร้าน ให้วางที่ assets/img/<id>-<n>.jpg ได้เลย (ไฟล์ในเครื่องมาก่อน Supabase)
 - [ ] ตรวจข้อมูลร้านกับของจริง (เวลาเปิด-ปิด, พิกัด lat/lng, ราคา, feat) แล้วตั้ง `verified: true`
 - [ ] (ถ้ามีเวลา) ห้องโหวตแบบทุกคนกดจากมือถือตัวเอง, ปุ่ม Veto คนละ 1 สิทธิ์
 - [ ] ชื่อผู้ commit ใน git เป็น atchayathas-lab ไม่ตรงกับเจ้าของ repo — แก้ด้วย `git config user.name/user.email` ถ้าผู้ใช้ต้องการ
