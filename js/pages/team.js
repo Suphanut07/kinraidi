@@ -4,11 +4,11 @@
    รูป: วางไฟล์ที่ assets/team/<key>.jpg (เช่น assets/team/tako.jpg) ถ้าไม่มี จะแสดงตัวอักษรแรกของชื่อแทน
    ========================================================= */
 const TEAM = [
-  { key: 'tako', nick: 'ตะโก้', fullName: 'ชื่อ-นามสกุล', studentId: 'รหัสนักศึกษา', role: 'หน้าที่ในทีม', mbti: 'ENFJ', bio: 'คำแนะนำตัวสั้นๆ' },
-  { key: 'kao', nick: 'เก้า', fullName: 'ชื่อ-นามสกุล', studentId: 'รหัสนักศึกษา', role: 'หน้าที่ในทีม', mbti: 'ISFP', bio: 'คำแนะนำตัวสั้นๆ' },
-  { key: 'poy', nick: 'ปอย', fullName: 'ชื่อ-นามสกุล', studentId: 'รหัสนักศึกษา', role: 'หน้าที่ในทีม', mbti: 'ISFJ', bio: 'คำแนะนำตัวสั้นๆ' },
-  { key: 'money', nick: 'มันนี่', fullName: 'ชื่อ-นามสกุล', studentId: 'รหัสนักศึกษา', role: 'หน้าที่ในทีม', mbti: 'INFJ', bio: 'คำแนะนำตัวสั้นๆ' },
-  { key: 'regency', nick: 'รีเจ้นซี่', fullName: 'ชื่อ-นามสกุล', studentId: 'รหัสนักศึกษา', role: 'หน้าที่ในทีม', mbti: 'ESFJ', bio: 'คำแนะนำตัวสั้นๆ' },
+  { key: 'tako', nick: 'ตะโก้', fullName: 'อภิสิทธิ์ เพ็ชรขุ้ม', studentId: '681310393', role: 'หน้าสุ่มเลย', mbti: 'ENFJ', bio: 'tokameanstar' },
+  { key: 'kao', nick: 'เก้า', fullName: 'ศุภณัฐ อาชญาทา', studentId: '681310390', role: 'หน้าสุ่มเลย', mbti: 'ISFP', bio: 'ฝีมืออีโก้ ปีโป้ปีศาจ' },
+  { key: 'poy', nick: 'ปอย', fullName: 'ปวิชญา บุญมา', studentId: '681310740', role: 'หน้าประวัติ', mbti: 'ISFP', bio: 'ofc angels are real, i exist.' },
+  { key: 'money', nick: 'มันนี่', fullName: 'มีนรวี รัตนปรีชาชัย', studentId: '681310756 ', role: 'หน้าโปรไฟล์', mbti: 'INFP', bio: 'MoneyMeansMoney' },
+  { key: 'regency', nick: 'รีเจ้นซี่', fullName: 'จิตรานุช ดีใจ', studentId: '681310510', role: 'หน้าสมาชิก', mbti: 'ENFJ', bio: 'ไทยบ้านทั้งใจ' },
 ];
 
 (async function () {
