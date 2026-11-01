@@ -137,11 +137,13 @@
     document.addEventListener('click', (e) => { if (!menu.contains(e.target) && e.target !== btn) setOpen(false); });
     const rr = holder.querySelector('[data-reroll]');
     if (rr) rr.addEventListener('click', (e) => { e.preventDefault(); setOpen(false); opts.onMobileReroll(); });
-    // สแกน QR ได้จากทุกหน้า: QR หัวทีม = เข้าร่วมมื้อ / QR โปรไฟล์ = เพิ่มเพื่อน
+    // "สแกน QR" ได้จากทุกหน้า: QR หัวทีม = เข้าร่วมมื้อ / QR โปรไฟล์ = เพิ่มเพื่อน
     holder.querySelector('.mm-scan').addEventListener('click', () => {
       setOpen(false);
       if (!me) { location.href = 'login.html?next=' + encodeURIComponent(location.pathname.split('/').pop() + location.search); return; }
-      KRD.people.scanPopup(me);
+      // เปิด popup "มาจอยกัน !" ตัวเดียวกับปุ่ม + (หน้าสุ่มเลยส่ง onMenuScan มาให้ = โหมดเข้าร่วมมื้อ)
+      if (opts.onMenuScan) opts.onMenuScan();
+      else KRD.people.joinPopup(me, { mode: 'friend' });
     });
   }
 
@@ -297,7 +299,7 @@
           document.querySelectorAll(`[data-fav="${b.dataset.fav}"]`).forEach((x) => {
             x.classList.toggle('on', on); x.innerHTML = icon(on ? 'heart' : 'heartOutline');
           });
-          toast(on ? 'เพิ่มในร้านโปรดแล้ว 💛' : 'นำออกจากร้านโปรดแล้ว');
+          toast(on ? 'เพิ่มในร้านโปรดแล้ว' : 'นำออกจากร้านโปรดแล้ว');
         } catch (err) { toast(err.message, 'error'); }
       });
     });
@@ -426,6 +428,80 @@
     });
   }
 
+  /* ---------- ครอปรูปก่อนอัปโหลด ----------
+     cropImage(file, { aspect: กว้าง/สูง, round: true = กรอบวงกลม, outW: ความกว้างไฟล์ที่ได้ })
+     → Promise<Blob | null>  (null = ผู้ใช้กดยกเลิก)
+     ลากเพื่อเลื่อนรูป · ซูมด้วยแถบเลื่อน / ล้อเมาส์ / สองนิ้วบนมือถือ */
+  function cropImage(file, { aspect = 1, round = false, outW = 800, title = 'ปรับรูป' } = {}) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      let done = false;
+      openModal({
+        title, iconName: 'imageAdd',
+        body: `
+          <div class="crop-wrap">
+            <div class="crop-stage ${round ? 'round' : ''}" style="aspect-ratio:${aspect}">
+              <img class="crop-img" src="${url}" alt="" draggable="false">
+              <div class="crop-frame"></div>
+            </div>
+            <p class="hint crop-hint">ลากเพื่อเลื่อนรูป · ใช้แถบด้านล่าง (หรือสองนิ้ว) เพื่อซูม</p>
+            <div class="crop-zoom"><span class="z-small">${icon('image')}</span>
+              <input type="range" min="1" max="4" step="0.01" value="1" aria-label="ซูม">
+              <span class="z-big">${icon('image')}</span></div>
+          </div>
+          <div class="modal-actions" style="justify-content:center">
+            <button class="btn" data-no>ยกเลิก</button><button class="btn btn-primary" data-ok>ใช้รูปนี้</button>
+          </div>`,
+        onMount(el, close) {
+          const stage = el.querySelector('.crop-stage'), img = el.querySelector('.crop-img'), range = el.querySelector('input[type=range]');
+          let W = 0, H = 0, base = 1, z = 1, x = 0, y = 0;
+          const clampPos = () => {
+            const s = base * z, iw = img.naturalWidth * s, ih = img.naturalHeight * s;
+            x = Math.min(0, Math.max(W - iw, x)); y = Math.min(0, Math.max(H - ih, y));
+          };
+          const paint = () => { clampPos(); img.style.width = img.naturalWidth * base * z + 'px'; img.style.transform = `translate(${x}px, ${y}px)`; };
+          const zoomTo = (nz, cx = W / 2, cy = H / 2) => {
+            nz = Math.min(4, Math.max(1, nz));
+            const k = nz / z; x = cx - (cx - x) * k; y = cy - (cy - y) * k; z = nz; range.value = z; paint();
+          };
+          const setup = () => {
+            const r = stage.getBoundingClientRect(); W = r.width; H = r.height;
+            base = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+            x = (W - img.naturalWidth * base * z) / 2; y = (H - img.naturalHeight * base * z) / 2; paint();
+          };
+          if (img.complete && img.naturalWidth) setup(); else img.onload = setup;
+          img.onerror = () => { toast('เปิดไฟล์รูปนี้ไม่ได้', 'error'); close(); };
+
+          // ลาก / สองนิ้วซูม
+          const pts = new Map(); let last = null, pinch = null;
+          stage.addEventListener('pointerdown', (e) => { stage.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); last = [e.clientX, e.clientY]; if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z }; } });
+          stage.addEventListener('pointermove', (e) => {
+            if (!pts.has(e.pointerId)) return;
+            pts.set(e.pointerId, [e.clientX, e.clientY]);
+            if (pts.size === 2 && pinch) {
+              const [a, b] = [...pts.values()], r = stage.getBoundingClientRect();
+              zoomTo(pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d, (a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top);
+            } else if (pts.size === 1 && last) { x += e.clientX - last[0]; y += e.clientY - last[1]; last = [e.clientX, e.clientY]; paint(); }
+          });
+          const up = (e) => { pts.delete(e.pointerId); pinch = null; const v = [...pts.values()][0]; last = v ? [...v] : null; };
+          stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+          stage.addEventListener('wheel', (e) => { e.preventDefault(); const r = stage.getBoundingClientRect(); zoomTo(z * (e.deltaY < 0 ? 1.08 : 0.93), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+          range.addEventListener('input', () => zoomTo(+range.value));
+
+          el.querySelector('[data-no]').onclick = close;
+          el.querySelector('[data-ok]').onclick = () => {
+            const s = base * z, outH = Math.round(outW / aspect);
+            const c = document.createElement('canvas'); c.width = outW; c.height = outH;
+            const ctx = c.getContext('2d'); ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, -x / s, -y / s, W / s, H / s, 0, 0, outW, outH);
+            c.toBlob((b) => { done = true; resolve(b); close(); }, 'image/jpeg', 0.88);
+          };
+        },
+        onClose() { URL.revokeObjectURL(url); if (!done) resolve(null); },
+      });
+    });
+  }
+
   /* ---------- ช่องรหัสผ่าน + ปุ่มเปิด/ปิดตา (ใช้ทุกที่ที่กรอกรหัสผ่าน) ---------- */
   function pwField(name, placeholder, autocomplete = 'current-password') {
     return `<div class="field"><div class="pw-wrap">
@@ -459,6 +535,6 @@
     boot, pwField, bindPwToggles,
     icon, diceSVG, esc, logoHTML, renderHeader, renderFooter, toast, openModal, confirmModal,
     avatarHTML, mbtiBadge, rImg, imgFail, assetImg, featIcons, restaurantCard, bindFavButtons, diceRoll, fabDice,
-    qs, getRestaurant, mapsLink, mapsEmbed, hoursText, requireLogin, resizeImage,
+    qs, getRestaurant, mapsLink, mapsEmbed, hoursText, requireLogin, resizeImage, cropImage,
   });
 })();

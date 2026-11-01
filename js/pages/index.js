@@ -8,7 +8,8 @@
    ========================================================= */
 (async function () {
   const { icon, esc, diceSVG, avatarHTML, mbtiBadge, restaurantCard, bindFavButtons, openModal, toast } = KRD;
-  const me = await KRD.boot('home');
+  // ☰ "สแกน QR" บนหน้านี้ = popup "มาจอยกัน !" ตัวเดียวกับปุ่ม + (โหมดเข้าร่วมมื้อ)
+  const me = await KRD.boot('home', { onMenuScan: () => { const b = document.getElementById('join-btn'); if (b) b.click(); } });
   const NOTE_MAX = 100;
 
   /* ---------- state (เก็บใน sessionStorage ให้กลับมาหน้านี้แล้วยังอยู่) ---------- */
@@ -151,8 +152,8 @@
       </div>
       <p class="party-name">${party.length ? `ไปกันทั้งหมด ${party.length + 1} คน · กดที่รูปเพื่อดูโปรไฟล์` : 'ยังไม่ได้เลือกใคร = สุ่มสำหรับคุณคนเดียว'}</p>
       <div class="group-select">
-        <button id="group-btn" type="button">
-          ${selectedGroup ? groupAvatar(selectedGroup) : avatarHTML(null)}
+        <button id="group-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+          ${selectedGroup ? groupAvatar(selectedGroup) : groupAvatar(null)}
           <span class="g-name">${selectedGroup ? esc(selectedGroup.name) : 'เลือกกลุ่ม'}</span>
           <span class="caret">${icon('chevronDown')}</span>
         </button>
@@ -161,10 +162,13 @@
     partyArea.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', openFriendPicker));
     document.getElementById('join-btn').addEventListener('click', () =>
       KRD.people.joinPopup(me, { mode: 'meal', onAdded: (p) => { selectedGroup = null; addToParty([p]); if (!friends.some((f) => f.id === p.id)) friends.push(p); } }));
-    document.getElementById('group-btn').addEventListener('click', openGroupMenu);
+    document.getElementById('group-btn').addEventListener('click', () => {
+      if (document.querySelector('.group-select .group-menu.open')) openGroupMenu.close(); else openGroupMenu();
+    });
   }
+  // รูปกลุ่ม (ไม่มีรูป / ยังไม่เลือก = ไอคอนกลุ่มสีน้ำตาลบนวงกลมพาสเทล)
   function groupAvatar(g) {
-    return g.photo_url ? `<span class="avatar"><img src="${esc(g.photo_url)}" alt=""></span>` : `<span class="avatar"><span class="initial">${esc(g.name.charAt(0))}</span></span>`;
+    return g && g.photo_url ? `<span class="avatar g-av"><img src="${esc(g.photo_url)}" alt=""></span>` : `<span class="avatar g-av g-empty">${icon('users')}</span>`;
   }
   function addToParty(profiles) {
     const cur = S.party;
@@ -185,28 +189,37 @@
     KRD.people.personPopup(p, { actions });
   }
 
-  // dropdown เลือกกลุ่ม
+  // dropdown เลือกกลุ่ม: กางลงใต้ปุ่มแบบนุ่มๆ (ลอยทับเนื้อหา) ลูกศรหมุนกลับหัวตอนเปิด
   function openGroupMenu() {
     const wrap = document.querySelector('.group-select');
-    if (wrap.querySelector('.group-menu')) return;
+    const btn = document.getElementById('group-btn');
+    if (wrap.querySelector('.group-menu')) return;   // กำลังปิดอยู่
     const m = document.createElement('div');
     m.className = 'group-menu';
-    m.innerHTML = `<button class="caret close-menu" aria-label="ปิด">${icon('chevronDown')}</button>
-      ${groups.length ? groups.map((g) => `<button class="item" data-g="${g.id}">${groupAvatar(g)}<span>${esc(g.name)}<br><small>${g.members.length} คน</small></span></button>`).join('')
-        : '<p style="padding:8px;margin:0;font-size:14px">ยังไม่มีกลุ่ม</p>'}
+    m.setAttribute('role', 'listbox');
+    m.innerHTML = `
+      ${groups.length ? groups.map((g) => `<button class="item" role="option" data-g="${g.id}">${groupAvatar(g)}<span class="gi-text"><b>${esc(g.name)}</b><small>${g.members.length} คน</small></span></button>`).join('')
+        : '<p class="gm-empty">ยังไม่มีกลุ่ม</p>'}
       <a class="more" href="member.html">เพิ่มเติม . . .</a>`;
     wrap.appendChild(m);
-    const close = () => { m.remove(); document.removeEventListener('click', outside); };
-    const outside = (e) => { if (!wrap.contains(e.target)) close(); };
-    setTimeout(() => document.addEventListener('click', outside));
-    m.querySelector('.close-menu').onclick = close;
+    requestAnimationFrame(() => { m.classList.add('open'); wrap.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); });
+    const outside = (e) => { if (!wrap.contains(e.target)) closeMenu(); };
+    const onKey = (e) => { if (e.key === 'Escape') closeMenu(); };
+    setTimeout(() => { document.addEventListener('click', outside); document.addEventListener('keydown', onKey); });
+    function closeMenu() {
+      const mm = wrap.querySelector('.group-menu'); if (!mm || mm.classList.contains('closing')) return;
+      mm.classList.remove('open'); mm.classList.add('closing'); wrap.classList.remove('open'); btn.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('click', outside); document.removeEventListener('keydown', onKey);
+      setTimeout(() => mm.remove(), 220);
+    }
+    openGroupMenu.close = closeMenu;
     m.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => {
       selectedGroup = groups.find((g) => g.id === b.dataset.g);
-      S.party = [];
-      addToParty(selectedGroup.members);
-      close(); toast(`เลือกกลุ่ม "${selectedGroup.name}" แล้ว`);
+      closeMenu();
+      setTimeout(() => { S.party = []; addToParty(selectedGroup.members); toast(`เลือกกลุ่ม "${selectedGroup.name}" แล้ว`); }, 180);
     }));
   }
+  openGroupMenu.close = () => {};
 
   // popup รายชื่อสมาชิก (เลือกเพื่อนเข้ามื้อ)
   function openFriendPicker() {

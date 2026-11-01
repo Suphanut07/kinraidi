@@ -98,7 +98,7 @@
           <div class="gcard-preview">
             <div class="gcard-photo" id="gp">${editing && group.photo_url ? `<img src="${esc(group.photo_url)}" alt="">` : `<div class="gph-empty">${icon('users')}</div>`}</div>
             <div class="gcard-strip">
-              <input class="gcard-name" name="name" maxlength="40" placeholder="ตั้งชื่อกลุ่ม..." value="${editing ? esc(group.name) : ''}" aria-label="ชื่อกลุ่ม">
+              <input class="gcard-name" name="name" maxlength="40" placeholder="ตั้งชื่อกลุ่ม" value="${editing ? esc(group.name) : ''}" aria-label="ชื่อกลุ่ม">
               <span class="count">${icon('users')} <span id="cnt">${count()}</span> members</span>
             </div>
             <label class="gcard-add" title="เพิ่มรูปกลุ่ม" aria-label="เพิ่มรูปกลุ่ม">${icon('imageAdd')}<input type="file" accept="image/*" hidden data-photo></label>
@@ -120,7 +120,11 @@
         if (!editing) setTimeout(() => f.name.focus(), 50);
         el.querySelector('[data-photo]').addEventListener('change', async (e) => {
           const file = e.target.files[0]; if (!file) return;
-          photoBlob = await KRD.resizeImage(file, KRD.api.mode === 'demo' ? 400 : 900);
+          e.target.value = '';   // เลือกไฟล์เดิมซ้ำได้
+          // ครอปให้พอดีกรอบรูปบนการ์ดกลุ่ม (4 : 3.3) ก่อนอัปโหลด
+          const blob = await KRD.cropImage(file, { aspect: 4 / 3.3, outW: KRD.api.mode === 'demo' ? 480 : 900, title: 'ปรับรูปกลุ่ม' });
+          if (!blob) return;
+          photoBlob = blob;
           el.querySelector('#gp').innerHTML = `<img src="${URL.createObjectURL(photoBlob)}" alt="">`;
         });
         el.querySelectorAll('[data-sel]').forEach((b) => b.addEventListener('click', () => {

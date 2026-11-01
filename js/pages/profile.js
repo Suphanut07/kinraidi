@@ -53,7 +53,7 @@
             <button class="setting-item" id="s-notif">${icon('bell')}<span>การแจ้งเตือน</span>${icon('chevronRight', 'go')}</button>
             <button class="setting-item" id="s-out">${icon('logout')}<span>ออกจากระบบ</span>${icon('chevronRight', 'go')}</button>
           </div></section>
-          <div class="side-photo">${KRD.assetImg('hero/profile-side.jpg', { emoji: '🍜' })}</div>
+          <div class="side-photo">${KRD.assetImg('profile/side.jpg', { emoji: '🍜', alt: 'น้องเกี๊ยวกับชามบะหมี่' })}</div>
         </div>
       </div>`;
 
@@ -100,7 +100,7 @@
           <div class="edit-avatar">
             <span class="field" style="margin:0"><label>${icon('image')} รูปโปรไฟล์</label></span>
             <div class="avatar-wrap"><span id="av-prev">${avatarHTML(me, 'lg')}</span>
-              <label class="cam" title="เปลี่ยนรูป">${icon('camera')}<input type="file" accept="image/*" id="av-file" hidden></label></div>
+              <label class="cam" title="เปลี่ยนรูป" aria-label="เปลี่ยนรูปโปรไฟล์">${icon('imageAdd')}<input type="file" accept="image/*" id="av-file" hidden></label></div>
           </div>
           <hr class="form-sep">
           <div class="field"><label>ชื่อผู้ใช้</label>
@@ -133,7 +133,11 @@
         el.querySelector('#quiz').onclick = () => openQuiz((t) => { f.mbti.value = t; });
         el.querySelector('#av-file').addEventListener('change', async (e) => {
           const file = e.target.files[0]; if (!file) return;
-          newAvatar = await KRD.resizeImage(file, KRD.api.mode === 'demo' ? 300 : 600);
+          e.target.value = '';
+          // ครอปเป็นวงกลมก่อนอัปโหลด (ไฟล์จริงเป็นสี่เหลี่ยมจัตุรัส แสดงผลเป็นวงกลม)
+          const blob = await KRD.cropImage(file, { aspect: 1, round: true, outW: KRD.api.mode === 'demo' ? 300 : 600, title: 'ปรับรูปโปรไฟล์' });
+          if (!blob) return;
+          newAvatar = blob;
           el.querySelector('#av-prev').innerHTML = `<span class="avatar lg"><img src="${URL.createObjectURL(newAvatar)}" alt=""></span>`;
         });
         f.addEventListener('submit', async (e) => {
