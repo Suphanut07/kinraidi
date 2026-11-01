@@ -69,8 +69,8 @@
             ${window.CONDITIONS.map((c) => `<button class="chip" data-cond="${c.key}">${c.label}</button>`).join('')}
           </div>
           <div class="note-box">
-            <label for="note">${icon('pencil')} รายละเอียดเพิ่มเติม <span class="hint">(ไม่บังคับ)</span></label>
-            <textarea id="note" class="input" rows="3" maxlength="${NOTE_MAX}" placeholder="บอกความอยากของมื้อนี้ เช่น อยากซดน้ำร้อนๆ, ไม่เอาเผ็ด, อยากนั่งชิลถ่ายรูปสวย">${esc(S.note)}</textarea>
+            <label for="note">${icon('pencil')} รายละเอียดเพิ่มเติม </label>
+            <textarea id="note" class="input" rows="3" maxlength="${NOTE_MAX}" placeholder="บอกความอยากของมื้อนี้เพิ่มเติม">${esc(S.note)}</textarea>
             <span class="counter" id="note-cnt">${S.note.length}/${NOTE_MAX}</span>
           </div>
         </div>

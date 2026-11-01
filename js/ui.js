@@ -173,8 +173,8 @@
               <div class="socials" aria-hidden="true">${SOCIAL_ICONS}</div>
             </div>
           </div>
-          <p class="copyright">© Faculty of Information and Communication Technology, Silpakorn University. All Rights Reserved 2026</p>
-          <p class="disclaimer">เว็บไซต์นี้จัดทำขึ้นเพื่อการศึกษาเท่านั้น ไม่ได้ใช้ในเชิงพาณิชย์ · ภาพร้านอาหารเป็นลิขสิทธิ์ของร้านและเจ้าของภาพ หากต้องการให้นำออก ติดต่อ kinraidixxx@gmail.com</p>
+          <p class="copyright">© KINRAIDI Project Silpakorn University. All Rights Reserved 2026</p>
+          <p class="disclaimer">เว็บไซต์นี้จัดทำขึ้นโดยนักศึกษาชั้นปีที่ 2 คณะเทคโนโลยีสารสนเทศและการสื่อสาร สาขาเทคโนโลยีสื่อสร้างสรรค์ ปีการศึกษา 2569 กลุ่มกินรัยดี · ใช้เพื่อการศึกษาในรายวิชาเทคโนโลยีการผลิตสื่อโต้ตอบเท่านั้น</p>
         </div>
       </footer>`;
   }

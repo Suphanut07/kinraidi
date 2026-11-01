@@ -35,7 +35,7 @@
         </section>
 
         <section class="frame blue"><div class="frame-inner">
-          <div class="likes-head">${icon('heart')}<div><h2>สิ่งที่ฉันชอบ</h2><p>ตัวเลือกการกินและบรรยากาศที่เลิฟที่สุด (เลือกได้หลายข้อ)</p></div></div>
+          <div class="likes-head">${icon('heart')}<div><h2>สิ่งที่ฉันชอบ</h2><p>ตัวเลือกการกินและบรรยากาศที่เลิฟที่สุด</p></div></div>
           ${ROWS.map((row) => `
             <div class="like-row">
               ${icon(row.icon)}
@@ -108,14 +108,14 @@
             <span class="hint">${canRename ? 'เปลี่ยนชื่อแล้วจะเปลี่ยนได้อีกครั้งในอีก 7 วัน' : `สามารถเปลี่ยนชื่อได้อีกครั้ง ในอีก ${daysLeft} วัน`}</span></div>
           <div class="field"><label>อีเมล</label>
             <div class="readonly-row"><input class="input" value="${esc(me.email)}" disabled></div>
-            <span class="hint">อีเมลใช้เข้าสู่ระบบ เปลี่ยนไม่ได้</span></div>
+            </div>
           <hr class="form-sep">
           <div class="field"><label>MBTI ของฉัน</label>
             <div class="mbti-row">
               <select class="input" name="mbti"><option value="">— ยังไม่ระบุ —</option>${types.map((t) => `<option ${me.mbti === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
               <button type="button" class="link-btn" id="quiz">ไม่รู้ MBTI? ทำแบบทดสอบสั้นๆ</button>
             </div>
-            <span class="hint">ใช้จับคู่บรรยากาศร้านให้เหมาะกับคุณและแก๊ง</span></div>
+            </div>
           <hr class="form-sep">
           <div class="field"><label>คำอธิบาย</label>
             <textarea class="input" name="bio" maxlength="80" rows="3">${esc(me.bio)}</textarea>
